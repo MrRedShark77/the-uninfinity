@@ -1,0 +1,87 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="js/jquery.js"></script>
+    <script src="js/notify.js"></script>
+    <script src="js/ExpantaNum.js"></script>
+    <script src="js/saves.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/v.js"></script>
+
+    <title>The Unifinity</title>
+</head>
+<body onload="loadGame()">
+    <div id="app">
+        <div style="height: 160px;" class="table_center">
+            <div v-if="player.unls.includes('planckAreas')">
+                You have <b>{{ notate(player.pAreas.points,0) }}</b> Planck Areas<br>
+                <button onclick="transformPL()" class="prestige" v-bind:class="{closed: FORMULA.planckAreas_gain().lt(1)}">Transform Planck Lengths for <b>{{ notate(FORMULA.planckAreas_gain(),0) }}</b> Planck Areas</button>
+            </div>
+        </div>
+        You have <h2>{{ notate(player.money,0) }}</h2> Planck Lengths<br>(+{{ notate(FORMULA.gps(0),0) }}/s)<br><br>
+        <div class="table_center"><div v-for="t in TABS.length">
+            <button v-on:click="player.tab = t-1">{{ TABS[t-1] }}</button>
+        </div></div><br>
+        <div v-if="player.tab == 0">
+            <button onclick='buyMax()'>Buy Max (M)</button><br><br>
+            <button onclick='sacrificeGen()' v-bind:class="{closed: (player.metas.lt(1) || FORMULA.gen8_have().lt(1))}" v-bind:tooltip="'Boost the Generator 8 by x'+notate(player.sacrifice)">Generator Sacrifice (x{{ notate(FORMULA.sacrifice()) }})</button><br><br>
+            <div>
+                <div v-for="g in 8" class="table_center" style="justify-content: space-between;">
+                    <div class="generator_text">Generator {{ g }}<sup>{{ player.generators[g-1][2].gte(2)?notate(player.generators[g-1][2],0):'' }}</sup> ({{ notate(player.generators[g-1][1],0) }})</div>
+                    <div class="generator_text">x{{ notate(FORMULA.generator_boost(player.generators[g-1][1], player.generators[g-1][2], g-1),0) }}</div>
+                    <div class="generator_text">{{ notate(player.generators[g-1][0],0) }}</div>
+                    <div class="generator_text">Cost: {{ notate(FORMULA.generator_cost(g-1, player.generators[g-1][1], player.generators[g-1][2]),0) }}</div>
+                    <div class="generator_text">
+                        <button v-bind:class="{closed: player.money.lt(FORMULA.generator_cost(g-1, player.generators[g-1][1], player.generators[g-1][2]))}" v-on:click="buyGenerator(g-1, player.generators[g-1][1], player.generators[g-1][2])">Buy</button>
+                        <button v-bind:class="{closed: player.generators[g-1][1].lt(100)}" v-on:click="tierGenerator(g-1)">Reset for Tier Up</button>
+                    </div>
+                </div><br><div class="table_center" style="justify-content: space-between;">
+                    <div class="generator_text">Multipler Powers<sup>{{ player.multTiers.gte(2)?notate(player.multTiers,0):'' }}</sup> ({{ notate(player.mults,0) }})</div>
+                    <div class="generator_text">x{{ notate(FORMULA.mult_boost(),3) }}</div>
+                    <div class="generator_text">(x{{ notate(FORMULA.mult_base(),3) }} per pieces)</div>
+                    <div class="generator_text">Cost: {{ notate(FORMULA.mult_cost(player.mults),0) }}</div>
+                    <div class="generator_text">
+                        <button v-bind:class="{closed: player.money.lt(FORMULA.mult_cost(player.mults))}" onclick="buyMult()">Buy</button>
+                        <button v-bind:class="{closed: player.mults.lt(100)}" onclick="tierMult()">Reset for Tier Up</button>
+                    </div>
+                </div><div class="table_center" style="justify-content: space-between;">
+                    <div class="generator_text">Meta Powers ({{ notate(player.metas,0) }})</div>
+                    <div class="generator_text">^{{ notate(FORMULA.meta_boost(),3) }}</div>
+                    <div class="generator_text">Raise Multipler Base</div>
+                    <div class="generator_text">Require: Generators 8<br>({{ notate(FORMULA.gen8_have(),0) }} / {{ notate(FORMULA.meta_cost(player.metas),0) }}) </div>
+                    <div class="generator_text">
+                        <button v-bind:class="{closed: FORMULA.gen8_have().lt(FORMULA.meta_cost(player.metas))}" onclick="buyMeta()">Reset your Generators & Multipler Powers to get Meta Powers</button>
+                    </div>
+                </div>
+            </div>
+        </div><div v-if="player.tab == 1">
+            <div v-for='c in ACHIEVEMENTS.unls.col' class="table_center">
+                <div v-for='r in ACHIEVEMENTS.unls.row' class="achi_unl" v-bind:tooltip='ACHIEVEMENTS.unls[10*c+r].desc' v-bind:class='{unlocked: player.achievements.includes(10*c+r)}' v-bind:style="{backgroundImage: 'url(images/' + achImage(10*c+r) + '.png)'}">
+                    <div style="font-weight: bold;">{{ ACHIEVEMENTS.unls[10*c+r].title }}</div>
+                </div>
+            </div>
+        </div><div v-if='player.tab == 2'>
+            <button onclick="save()">Save</button>
+            <button onclick="if (confirm('You wanted to RESET your progress to new game?')) {wipe(); location.reload()}">WIPE</button>
+            <button onclick="exporty()">Export</button>
+            <button onclick="importy()">Import</button>
+            <br>
+            <button onclick="window.open('https://discord.gg/UNjRAT','mywindow')">My Discord</button>
+        </div><div v-if="player.tab == 3">
+            You have {{ notate(player.pAreas.points,0) }} Planck Areas<br><br>
+            <div v-for='c in UPGRADE.pAreas.col' class="table_center">
+                <div v-for='r in UPGRADE.pAreas.row'>
+                    <button class="upg" v-on:click='buyUPG("pAreas",c*10+r)' v-if='UPGRADE.pAreas[c*10+r].unl()' 
+                    v-bind:class='{closed: player.pAreas.points.lt(UPGRADE.pAreas[c*10+r].cost()) & !player.pAreas.upgs.includes(c*10+r), bought: player.pAreas.upgs.includes(c*10+r)}'>
+                    {{ UPGRADE.pAreas[c*10+r].desc }}<br>Cost: {{ notate(UPGRADE.pAreas[c*10+r].cost(),0) }} PA
+                    <br><span v-if='UPGRADE.pAreas[c*10+r].cur'>Currently: {{ UPGRADE.pAreas[c*10+r].curDesc(UPGRADE.pAreas[c*10+r].cur()) }}</span></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

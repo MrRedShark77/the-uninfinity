@@ -1,0 +1,144 @@
+* {
+    font-family: "Lucida Console", "Courier New", monospace;
+    table-align: center;
+    text-align: center;
+}
+
+body {
+    color: white;
+    text-shadow: 0px 0px 7px white;
+    background-color: black;
+    overflow-x: hidden;
+}
+
+table, tr {
+    display: flex;
+    justify-content: center;
+}
+
+button {
+    border: solid 3px black;
+    background-color: white;
+    border-radius: 10px;
+    font-size: 15px;
+	animation-duration: 0.5s;
+	cursor: pointer;
+}
+
+h1, h2 {
+    display: inline;
+    font-size: 25px;
+}
+
+.table_center {
+    display: flex;
+    justify-content: center;
+    flex-flow: row wrap;
+    align-items: center;
+}
+
+.generator_text {
+    width: 250px;
+    height: 35px;
+    text-align: left;
+}
+
+.closed {
+	background-color: gray;
+	cursor: default;
+}
+
+.prestige {
+	width: 250px;
+    height: 110px;
+}
+
+.achi_unl {
+	border: solid 3px black;
+	background-image: url('images/placeholder.png');
+	background-size: contain;
+    width: 115px;
+    height: 115px;
+    background-color: gray;
+    border-radius: 10%;
+    padding: 5px;
+    color: black;
+    text-shadow: 0px 0px 12px white;
+    font-size: 12px;
+}
+
+.upg {
+    width: 190px;
+	height: 90px;
+	font-size: 10px;
+}
+
+.unlocked,
+.bought {
+	background-color: #5AC467;
+	cursor: default;
+}
+
+[tooltip] {
+	position: relative;
+	z-index: 2;
+	white-space: pre-wrap;
+}
+
+[tooltip]:before,
+[tooltip]:after {
+	visibility: hidden;
+	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";
+	filter: progid: DXImageTransform.Microsoft.Alpha(Opacity=0);
+	opacity: 0;
+	pointer-events: none;
+	white-space: pre-wrap;
+}
+
+[tooltip]:before {
+	position: absolute;
+	bottom: 100%;
+	left: 50%;
+	margin-bottom: 5px;
+	margin-left: -80px;
+	padding: 7px;
+	width: 160px;
+	-webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+	border-radius: 3px;
+	background-color: #000;
+	background-color: hsla(0, 0%, 5%, 0.9);
+	color: #fff;
+	content: attr(tooltip);
+	text-align: center;
+	font-size: 14px;
+	line-height: 1.2;
+	transition-duration: 0.5s;
+	white-space: pre-wrap;
+}
+
+[tooltip]:after {
+	position: absolute;
+	bottom: 100%;
+	left: 50%;
+	margin-left: -5px;
+	width: 0;
+	border-top: 5px solid #000;
+	border-top: 5px solid hsla(0, 0%, 5%, 0.9);
+	border-right: 5px solid transparent;
+	border-left: 5px solid transparent;
+	content: " ";
+	font-size: 0;
+	line-height: 0;
+	transition-duration: 0.5s;
+	white-space: pre-wrap;
+}
+
+[tooltip]:hover:before,
+[tooltip]:hover:after {
+	visibility: visible;
+	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=100)";
+	filter: progid: DXImageTransform.Microsoft.Alpha(Opacity=100);
+	opacity: 1;
+	white-space: pre-wrap;
+}
