@@ -79,6 +79,31 @@ h1, h2 {
 	cursor: default;
 }
 
+.autobuyer {
+	width: 150px;
+	height: 100px;
+	border: solid 3px white;
+	border-radius: 10px;
+	margin: 3px;
+	padding: 3px;
+}
+
+.challenge {
+    width:400px;
+    height: 175px;
+    border: solid 3px white;
+    border-radius: 10px;
+    font-size: 80%;
+    padding: 3px;
+    margin: 3px;
+    border-radius: 10px;
+}
+
+.challenge_button {
+	font-weight: bold;
+    height: 25px;
+}
+
 [tooltip] {
 	position: relative;
 	z-index: 2;

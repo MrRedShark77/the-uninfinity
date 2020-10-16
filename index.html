@@ -24,39 +24,59 @@
         </div>
         You have <h2>{{ notate(player.money,0) }}</h2> Planck Lengths<br>(+{{ notate(FORMULA.gps(0),0) }}/s)<br><br>
         <div class="table_center"><div v-for="t in TABS.length">
-            <button v-on:click="player.tab = t-1" v-if="TABS_UNLS[TABS[t-1]]()">{{ TABS[t-1] }}</button>
+            <button v-on:click="player.tab = t-1; player.stab = 0" v-if="TABS_UNLS[TABS[t-1]]()">{{ TABS[t-1] }}</button>
         </div></div><br>
         <div v-if="player.tab == 0">
-            <button onclick='buyMax()'>Buy Max (M)</button><br><br>
-            <button onclick='sacrificeGen()' v-bind:class="{closed: (player.metas.lt(1) || FORMULA.gen8_have().lt(1))}" v-bind:tooltip="'Boost the Generator 8 by x'+notate(player.sacrifice)">Generator Sacrifice (x{{ notate(FORMULA.sacrifice()) }})</button><br><br>
-            <div>
-                <div v-for="g in 8" class="table_center" style="justify-content: space-between;">
-                    <div class="generator_text">Generator {{ g }}<sup>{{ player.generators[g-1][2].gte(2)?notate(player.generators[g-1][2],0):'' }}</sup> ({{ notate(player.generators[g-1][1],0) }})</div>
-                    <div class="generator_text">x{{ notate(FORMULA.generator_boost(player.generators[g-1][1], player.generators[g-1][2], g-1),0) }}</div>
-                    <div class="generator_text">{{ notate(player.generators[g-1][0],0) }}</div>
-                    <div class="generator_text">Cost: {{ notate(FORMULA.generator_cost(g-1, player.generators[g-1][1], player.generators[g-1][2]),0) }}</div>
-                    <div class="generator_text">
-                        <button v-bind:class="{closed: player.money.lt(FORMULA.generator_cost(g-1, player.generators[g-1][1], player.generators[g-1][2]))}" v-on:click="buyGenerator(g-1, player.generators[g-1][1], player.generators[g-1][2])">Buy</button>
-                        <button v-bind:class="{closed: player.generators[g-1][1].lt(100)}" v-on:click="tierGenerator(g-1)">Reset for Tier Up</button>
-                    </div>
-                </div><br><div class="table_center" style="justify-content: space-between;">
-                    <div class="generator_text">Multipler Powers<sup>{{ player.multTiers.gte(2)?notate(player.multTiers,0):'' }}</sup> ({{ notate(player.mults,0) }})</div>
-                    <div class="generator_text">x{{ notate(FORMULA.mult_boost(),3) }}</div>
-                    <div class="generator_text">(x{{ notate(FORMULA.mult_base(),3) }} per pieces)</div>
-                    <div class="generator_text">Cost: {{ notate(FORMULA.mult_cost(player.mults),0) }}</div>
-                    <div class="generator_text">
-                        <button v-bind:class="{closed: player.money.lt(FORMULA.mult_cost(player.mults))}" onclick="buyMult()">Buy</button>
-                        <button v-bind:class="{closed: player.mults.lt(100)}" onclick="tierMult()">Reset for Tier Up</button>
-                    </div>
-                </div><div class="table_center" style="justify-content: space-between;">
-                    <div class="generator_text">Meta Powers ({{ notate(player.metas,0) }})</div>
-                    <div class="generator_text">^{{ notate(FORMULA.meta_boost(),3) }}</div>
-                    <div class="generator_text">Raise Multipler Base</div>
-                    <div class="generator_text">Require: Generators 8<br>({{ notate(FORMULA.gen8_have(),0) }} / {{ notate(FORMULA.meta_cost(player.metas),0) }}) </div>
-                    <div class="generator_text">
-                        <button v-bind:class="{closed: FORMULA.gen8_have().lt(FORMULA.meta_cost(player.metas))}" onclick="buyMeta()">Reset your Generators & Multipler Powers to get Meta Powers</button>
+            <div class="table_center"><div v-for="st in STABS['Generators'].length">
+                <button v-on:click="player.stab = st-1" v-if="STABS_UNLS['Generators'][STABS['Generators'][st-1]]()">{{ STABS['Generators'][st-1] }}</button>
+            </div></div><br>
+            <div v-if='player.stab == 0'>
+                <button onclick='buyMax()'>Buy Max (M)</button><br><br>
+                <button onclick='sacrificeGen()' v-bind:class="{closed: ((player.metas.lt(1) && !player.pAreas.upgs.includes(43)) || FORMULA.gen8_have().lt(1))}" v-bind:tooltip="'Boost the Generator 8 by x'+notate(player.sacrifice)">Generator Sacrifice (x{{ notate(FORMULA.sacrifice()) }})</button><br><br>
+                <div>
+                    <div v-for="g in 8" class="table_center" style="justify-content: space-between;">
+                        <div class="generator_text">Length Generator {{ g }}<sup>{{ player.generators[g-1][2].gte(2)?notate(player.generators[g-1][2],0):'' }}</sup> ({{ notate(player.generators[g-1][1],0) }})</div>
+                        <div class="generator_text">x{{ notate(FORMULA.generator_boost(player.generators[g-1][1], player.generators[g-1][2], g-1),0) }}</div>
+                        <div class="generator_text">{{ notate(player.generators[g-1][0],0) }}</div>
+                        <div class="generator_text">Cost: {{ notate(FORMULA.generator_cost(g-1, player.generators[g-1][1], player.generators[g-1][2]),0) }}</div>
+                        <div class="generator_text">
+                            <button v-bind:class="{closed: player.money.lt(FORMULA.generator_cost(g-1, player.generators[g-1][1], player.generators[g-1][2]))}" v-on:click="buyGenerator(g-1, player.generators[g-1][1], player.generators[g-1][2])">Buy</button>
+                            <button v-bind:class="{closed: player.generators[g-1][1].lt(100)}" v-on:click="tierGenerator(g-1)">Reset for Tier Up</button>
+                        </div>
+                    </div><br><div class="table_center" style="justify-content: space-between;">
+                        <div class="generator_text">Multipler Powers<sup>{{ player.multTiers.gte(2)?notate(player.multTiers,0):'' }}</sup> ({{ notate(player.mults,0) }})</div>
+                        <div class="generator_text">x{{ notate(FORMULA.mult_boost(),3) }}</div>
+                        <div class="generator_text">(x{{ notate(FORMULA.mult_base(),3) }} per pieces)</div>
+                        <div class="generator_text">Cost: {{ notate(FORMULA.mult_cost(player.mults),0) }}</div>
+                        <div class="generator_text">
+                            <button v-bind:class="{closed: player.money.lt(FORMULA.mult_cost(player.mults))}" onclick="buyMult()">Buy</button>
+                            <button v-bind:class="{closed: player.mults.lt(100)}" onclick="tierMult()">Reset for Tier Up</button>
+                        </div>
+                    </div><div class="table_center" style="justify-content: space-between;">
+                        <div class="generator_text">Meta Powers ({{ notate(player.metas,0) }})</div>
+                        <div class="generator_text">^{{ notate(FORMULA.meta_boost(),3) }}</div>
+                        <div class="generator_text">Raise Multipler Base</div>
+                        <div class="generator_text">Require: Generators 8<br>({{ notate(FORMULA.gen8_have(),0) }} / {{ notate(FORMULA.meta_cost(player.metas),0) }}) </div>
+                        <div class="generator_text">
+                            <button v-bind:class="{closed: FORMULA.gen8_have().lt(FORMULA.meta_cost(player.metas))}" onclick="buyMeta()">Reset your Generators & Multipler Powers to get Meta Powers</button>
+                        </div>
                     </div>
                 </div>
+            </div><div v-if='player.stab == 1'>
+                You have <h2>{{ notate(player.PA_powers,0) }}</h2> PA Powers, which multiples Length Generators by <h2>{{ notate(FORMULA.pa_powers_eff(),0) }}</h2><br>(+{{ notate(FORMULA.pa_generator.ps(0),0) }}/s)<br><br>
+                <div>
+                    <div v-for="g in 8" class="table_center" style="justify-content: space-between;" v-if="player.PA_gen_unls >= g">
+                        <div class="generator_text">Area Generator {{ g }}<sup>{{ player.PA_generators[g-1][2].gte(2)?notate(player.PA_generators[g-1][2],0):'' }}</sup> ({{ notate(player.PA_generators[g-1][1],0) }})</div>
+                        <div class="generator_text">x{{ notate(FORMULA.pa_generator.boost(player.PA_generators[g-1][1], player.PA_generators[g-1][2], g-1),0) }}</div>
+                        <div class="generator_text">{{ notate(player.PA_generators[g-1][0],0) }}</div>
+                        <div class="generator_text">Cost: {{ notate(FORMULA.pa_generator.cost(g-1, player.PA_generators[g-1][1], player.PA_generators[g-1][2]),0) }} PA</div>
+                        <div class="generator_text">
+                            <button v-bind:class="{closed: player.pAreas.points.lt(FORMULA.pa_generator.cost(g-1, player.PA_generators[g-1][1], player.PA_generators[g-1][2]))}" v-on:click="buyPAGenerator(g-1, player.PA_generators[g-1][1], player.PA_generators[g-1][2])">Buy</button>
+                            <button v-bind:class="{closed: player.PA_generators[g-1][1].lt(100)}" v-on:click="tierPAGenerator(g-1)">Reset for Tier Up</button>
+                        </div>
+                    </div>
+                </div>
+                <button onclick="unlPAGenerator()" v-bind:class="{closed: player.money.lt(UNL_PA_GEN[player.PA_gen_unls])}">You need <b>{{ notate(UNL_PA_GEN[player.PA_gen_unls]) }}</b> Planck Legnths to unlock new Generator</button>
             </div>
         </div><div v-if="player.tab == 1">
             <div v-for='c in ACHIEVEMENTS.unls.col' class="table_center">
@@ -73,12 +93,46 @@
             <button onclick="window.open('https://discord.gg/UNjRAT','mywindow')">My Discord</button>
         </div><div v-if="player.tab == 3">
             You have {{ notate(player.pAreas.points,0) }} Planck Areas<br><br>
-            <div v-for='c in UPGRADE.pAreas.col' class="table_center">
-                <div v-for='r in UPGRADE.pAreas.row'>
-                    <button class="upg" v-on:click='buyUPG("pAreas",c*10+r)' v-if='UPGRADE.pAreas[c*10+r].unl()' 
-                    v-bind:class='{closed: player.pAreas.points.lt(UPGRADE.pAreas[c*10+r].cost()) & !player.pAreas.upgs.includes(c*10+r), bought: player.pAreas.upgs.includes(c*10+r)}'>
-                    {{ UPGRADE.pAreas[c*10+r].desc }}<br>Cost: {{ notate(UPGRADE.pAreas[c*10+r].cost(),0) }} PA
-                    <br><span v-if='UPGRADE.pAreas[c*10+r].cur'>Currently: {{ UPGRADE.pAreas[c*10+r].curDesc(UPGRADE.pAreas[c*10+r].cur()) }}</span></button>
+            <div class="table_center"><div v-for="st in STABS['Planck Area'].length">
+                <button v-on:click="player.stab = st-1" v-if="STABS_UNLS['Planck Area'][STABS['Planck Area'][st-1]]()">{{ STABS['Planck Area'][st-1] }}</button>
+            </div></div><br>
+            <div v-if="player.stab == 0">
+                <div v-for='c in UPGRADE.pAreas.col' class="table_center">
+                    <div v-for='r in UPGRADE.pAreas.row'>
+                        <button class="upg" v-on:click='buyUPG("pAreas",c*10+r)' v-if='UPGRADE.pAreas[c*10+r].unl()' 
+                        v-bind:class='{closed: player.pAreas.points.lt(UPGRADE.pAreas[c*10+r].cost()) & !player.pAreas.upgs.includes(c*10+r), bought: player.pAreas.upgs.includes(c*10+r)}'>
+                        {{ UPGRADE.pAreas[c*10+r].desc }}<br>Cost: {{ notate(UPGRADE.pAreas[c*10+r].cost(),0) }} PA
+                        <br><span v-if='UPGRADE.pAreas[c*10+r].cur'>Currently: {{ UPGRADE.pAreas[c*10+r].curDesc(UPGRADE.pAreas[c*10+r].cur()) }}</span></button>
+                    </div>
+                </div><br>
+                <button v-bind:class='{closed: player.pAreas.points.lt(FORMULA.pa_mult.cost())}' class="upg" onclick="buyPAmult()">You get x2 more PA.<br>Currently: x{{ notate(FORMULA.pa_mult.boost(),0) }}<br>Cost: {{ notate(FORMULA.pa_mult.cost(),0) }} PA</button>
+            </div><div v-if="player.stab == 1">
+                <div v-for='c in 2' class="table_center">
+                    <div v-for='r in 4' class="autobuyer">
+                        Generator {{ (c-1)*4+r }}<br><br>
+                        Is Active <input type="checkbox" v-model="player.generators_autobuyer[(c-1)*4+r-1][0]"><br>
+                        Is Tier <input type="checkbox" v-model="player.generators_autobuyer[(c-1)*4+r-1][1]">
+                    </div>
+                </div><div class="table_center">
+                    <div class="autobuyer">
+                        Multipler<br><br>
+                        Is Active <input type="checkbox" v-model="player.mults_autobuyer[0]"><br>
+                        Is Tier <input type="checkbox" v-model="player.mults_autobuyer[1]">
+                    </div>
+                </div>
+            </div><div v-if="player.stab == 2">
+                You need <b>{{ notate(CHALLENGE.pAreas.reqtoUnl[player.PA_chal.unl.length]) }}</b> Planck Lengths to unlock new PA Challenge.<br><br>
+                <div v-for='c in CHALLENGE.pAreas.col' class="table_center">
+                    <div class="challenge" v-for='r in CHALLENGE.pAreas.row' v-if='player.PA_chal.unl.includes(c*10+r)'>
+                        <div style="height: 75px;">
+                            <b>PA Challenge {{ 2*(c-1)+r }}</b><br>
+                            {{ CHALLENGE.pAreas[c*10+r].desc }}
+                        </div>
+                        <button class="challenge_button" v-on:click='PAChal(c*10+r)'>{{ chalText(c,r) }}</button><br><br>
+                        Goal: {{ notate(CHALLENGE.pAreas[c*10+r].goal) }}<br>
+                        Reward: {{ CHALLENGE.pAreas[c*10+r].reward }}<br>
+                        <span v-if='CHALLENGE.pAreas[c*10+r].cur'>Currently: {{ CHALLENGE.pAreas[c*10+r].curDesc(CHALLENGE.pAreas[c*10+r].cur()) }}</span>
+                    </div>
                 </div>
             </div>
         </div>
