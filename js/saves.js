@@ -28,13 +28,15 @@ function calc(dt) {
     }
     for (let c = 1; c <= ACHIEVEMENTS.unls.col; c++) for (let r = 1; r <= ACHIEVEMENTS.unls.row; r++) if (ACHIEVEMENTS.unls[10*c+r].req()) unlockAchievement(c*10+r)
     if (player.money.gte('e300')) unlockFeature('planckAreas')
-    if (player.money.gte('e66000')) unlockFeature('PA_Generators')
+    if (player.money.gte('e88500')) unlockFeature('PA_Generators')
     for (let i = 0; i < 8; i++) {
         if (player.generators_autobuyer[i][0]) bulkGen(i)
         if (player.generators_autobuyer[i][1]) tierGenerator(i)
     }
     if (player.mults_autobuyer[0]) bulkMult()
     if (player.mults_autobuyer[1]) tierMult()
+    if (player.metas_autobuyer[0]) buyMeta()
+    if (player.metas_autobuyer[1]) tierMeta()
     for (let c = 1; c <= CHALLENGE.pAreas.col; c++) for (let r = 1; r <= CHALLENGE.pAreas.row; r++) if (CHALLENGE.pAreas[c*10+r].unl()) unlockPAChal(c*10+r)
 }
 
@@ -51,8 +53,10 @@ function wipe() {
         generators_autobuyer: [],
         mults: E(0),
         mults_autobuyer: [false,false],
+        metas_autobuyer: [false,false],
         multTiers: E(1),
         metas: E(0),
+        metaTiers: E(1),
         sacrifice: E(1),
         PA_chal: {
             unl: [],
@@ -63,6 +67,7 @@ function wipe() {
         PA_generators: [],
         PA_gen_unls: 0,
         PA_powers: E(0),
+        PG_upgs: [],
         tab: 0,
         stab: 0,
         achievements: [],
@@ -125,6 +130,9 @@ function loadPlayer(load) {
     if (load.PA_gen_unls != undefined) player.PA_gen_unls = load.PA_gen_unls
     if (load.PA_generators != undefined) for (let i = 0; i < 8; i++) for (let j = 0; j < 3; j++) player.PA_generators[i][j] = ex(load.PA_generators[i][j])
     if (load.PA_powers != undefined) player.PA_powers = ex(load.PA_powers)
+    if (load.PG_upgs != undefined) player.PG_upgs = load.PG_upgs
+    if (load.metaTiers != undefined) player.metaTiers = ex(load.metaTiers)
+    if (load.metas_autobuyer != undefined) player.metas_autobuyer = load.metas_autobuyer
 }
 
 function loadGame() {

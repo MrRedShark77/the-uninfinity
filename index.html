@@ -53,12 +53,13 @@
                             <button v-bind:class="{closed: player.mults.lt(100)}" onclick="tierMult()">Reset for Tier Up</button>
                         </div>
                     </div><div class="table_center" style="justify-content: space-between;">
-                        <div class="generator_text">Meta Powers ({{ notate(player.metas,0) }})</div>
+                        <div class="generator_text">Meta Powers<sup>{{ player.metaTiers.gte(2)?notate(player.metaTiers,0):'' }}</sup> ({{ notate(player.metas,0) }})</div>
                         <div class="generator_text">^{{ notate(FORMULA.meta_boost(),3) }}</div>
                         <div class="generator_text">Raise Multipler Base</div>
                         <div class="generator_text">Require: Generators 8<br>({{ notate(FORMULA.gen8_have(),0) }} / {{ notate(FORMULA.meta_cost(player.metas),0) }}) </div>
                         <div class="generator_text">
                             <button v-bind:class="{closed: FORMULA.gen8_have().lt(FORMULA.meta_cost(player.metas))}" onclick="buyMeta()">Reset your Generators & Multipler Powers to get Meta Powers</button>
+                            <button v-bind:class="{closed: player.metas.lt(100)}" onclick="tierMeta()">Reset for Tier Up</button>
                         </div>
                     </div>
                 </div>
@@ -105,7 +106,7 @@
                         <br><span v-if='UPGRADE.pAreas[c*10+r].cur'>Currently: {{ UPGRADE.pAreas[c*10+r].curDesc(UPGRADE.pAreas[c*10+r].cur()) }}</span></button>
                     </div>
                 </div><br>
-                <button v-bind:class='{closed: player.pAreas.points.lt(FORMULA.pa_mult.cost())}' class="upg" onclick="buyPAmult()">You get x2 more PA.<br>Currently: x{{ notate(FORMULA.pa_mult.boost(),0) }}<br>Cost: {{ notate(FORMULA.pa_mult.cost(),0) }} PA</button>
+                <button v-bind:class='{closed: player.pAreas.points.lt(FORMULA.pa_mult.cost())}' class="upg" onclick="buyPAmult()">You get more PA.<br>Currently: x{{ notate(FORMULA.pa_mult.boost(),0) }}<br>Cost: {{ notate(FORMULA.pa_mult.cost(),0) }} PA</button>
             </div><div v-if="player.stab == 1">
                 <div v-for='c in 2' class="table_center">
                     <div v-for='r in 4' class="autobuyer">
@@ -118,6 +119,10 @@
                         Multipler<br><br>
                         Is Active <input type="checkbox" v-model="player.mults_autobuyer[0]"><br>
                         Is Tier <input type="checkbox" v-model="player.mults_autobuyer[1]">
+                    </div><div class="autobuyer" v-if="player.PA_chal.completed.includes(32)">
+                        Meta<br><br>
+                        Is Active <input type="checkbox" v-model="player.metas_autobuyer[0]"><br>
+                        Is Tier <input type="checkbox" v-model="player.metas_autobuyer[1]">
                     </div>
                 </div>
             </div><div v-if="player.stab == 2">
@@ -132,6 +137,15 @@
                         Goal: {{ notate(CHALLENGE.pAreas[c*10+r].goal) }}<br>
                         Reward: {{ CHALLENGE.pAreas[c*10+r].reward }}<br>
                         <span v-if='CHALLENGE.pAreas[c*10+r].cur'>Currently: {{ CHALLENGE.pAreas[c*10+r].curDesc(CHALLENGE.pAreas[c*10+r].cur()) }}</span>
+                    </div>
+                </div>
+            </div><div v-if="player.stab == 3">
+                <div v-for='c in UPGRADE.post_gens.col' class="table_center">
+                    <div v-for='r in UPGRADE.post_gens.row'>
+                        <button class="upg" v-on:click='buyUPG("post_gens",c*10+r)' v-if='UPGRADE.post_gens[c*10+r].unl()' 
+                        v-bind:class='{closed: player.pAreas.points.lt(UPGRADE.post_gens[c*10+r].cost()) & !player.PG_upgs.includes(c*10+r), bought: player.PG_upgs.includes(c*10+r)}'>
+                        {{ UPGRADE.post_gens[c*10+r].desc }}<br>Cost: {{ notate(UPGRADE.post_gens[c*10+r].cost(),0) }} PA
+                        <br><span v-if='UPGRADE.post_gens[c*10+r].cur'>Currently: {{ UPGRADE.post_gens[c*10+r].curDesc(UPGRADE.post_gens[c*10+r].cur()) }}</span></button>
                     </div>
                 </div>
             </div>
