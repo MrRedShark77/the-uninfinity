@@ -285,7 +285,7 @@ const UPGRADE = {
 
 const CHALLENGE = {
     pAreas: {
-        reqtoUnl: [E('0'),E('e9000'),E('e48000'),E('e88000'),E('e101500'),E('e130000'),E('e203000'),E('e750000'),E(Infinity)],
+        reqtoUnl: [E('0'),E('e9000'),E('e48000'),E('e88000'),E('e101500'),E('e130000'),E('e203000'),E(Infinity)],
         row: 2,
         col: 4,
         11: {
@@ -337,7 +337,7 @@ const CHALLENGE = {
             reward: 'Raise Length Generators by 1.15.',
         },
         42: {
-            unl: () => { return player.money.gte('e750000') },
+            unl: () => { return player.money.gte(1/0) },
             desc: "Length Generatiors, Multiplers & Metas Tiers cost formula are raised by 2.",
             goal: E('e150000'),
             reward: 'Length Generator 7 & 8 are 10x more effective.',
