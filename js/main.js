@@ -660,7 +660,7 @@ function buyMax() {
 
 function sacrificeGen() {
     if ((player.metas.gte(1) || player.pAreas.upgs.includes(43)) && FORMULA.gen8_have().gte(1)) {
-        if (FORMULA.sacrifice().gte('e10000')) unlockAchievement(35)
+        if (FORMULA.sacrifice().gte('e60000')) unlockAchievement(35)
         player.sacrifice = player.sacrifice.mul(FORMULA.sacrifice())
         for (let i = 0; i < 7; i++) player.generators[i][0] = E(0)
     }
