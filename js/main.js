@@ -624,7 +624,7 @@ function buyMult() {
 
 function buyMeta() {
     if (FORMULA.gen8_have().gte(FORMULA.meta_cost())) {
-        if (player.pAreas.upgs.includes(13)) if (player.metas.lt(FORMULA.meta_bulk())) player.metas = FORMULA.meta_bulk()
+        if (player.pAreas.upgs.includes(13)) {if (player.metas.lt(FORMULA.meta_bulk())) player.metas = FORMULA.meta_bulk()}
         else player.metas = player.metas.add(1)
         player.money = E(player.achievements.includes(25)?200:10)
         player.generators = []
