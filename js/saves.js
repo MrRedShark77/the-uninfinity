@@ -22,9 +22,12 @@ function calc(dt) {
     player.ticks += dt
     player.money = player.money.add(FORMULA.gps(0).mul(dt/1000))
     player.PA_powers = player.PA_powers.add(FORMULA.pa_generator.ps(0).mul(dt/1000))
+    player.PV_powers = player.PV_powers.add(FORMULA.pv_generator.ps(0).mul(dt/1000))
+    player.areaity.powers = player.areaity.powers.mul(FORMULA.areaity.ps().pow(dt/1000))
     for (let i = 0; i < 7; i++) {
         player.generators[i][0] = player.generators[i][0].add((FORMULA.gps(i+1)).mul(dt/1000))
         player.PA_generators[i][0] = player.PA_generators[i][0].add((FORMULA.pa_generator.ps(i+1)).mul(dt/1000))
+        if (i < 3) player.PV_generators[i][0] = player.PV_generators[i][0].add((FORMULA.pv_generator.ps(i+1)).mul(dt/1000))
     }
     for (let c = 1; c <= ACHIEVEMENTS.unls.col; c++) for (let r = 1; r <= ACHIEVEMENTS.unls.row; r++) if (ACHIEVEMENTS.unls[10*c+r].req()) unlockAchievement(c*10+r)
     if (player.money.gte('e300')) unlockFeature('planckAreas')
@@ -37,7 +40,13 @@ function calc(dt) {
     if (player.mults_autobuyer[1]) tierMult()
     if (player.metas_autobuyer[0]) buyMeta()
     if (player.metas_autobuyer[1]) tierMeta()
+    if (player.PA_mult_autobuyer) if (FORMULA.pa_mult.bulk().gt(player.PA_mult)) {
+        player.PA_mult = FORMULA.pa_mult.bulk()
+        player.pAreas.points = player.pAreas.points.sub(FORMULA.pa_mult.cost(player.PA_mult.sub(1)))
+    }
+    if (document.getElementById('treeStudy')) resizeCanvas()
     for (let c = 1; c <= CHALLENGE.pAreas.col; c++) for (let r = 1; r <= CHALLENGE.pAreas.row; r++) if (CHALLENGE.pAreas[c*10+r].unl()) unlockPAChal(c*10+r)
+    for (let i = 0; i < 3; i++) if (player.areaity.autobuys[i]) FORMULA.areaity.upgs.max(i+1)
 }
 
 function wipe() {
@@ -47,6 +56,25 @@ function wipe() {
             points: E(0),
             times: E(0),
             upgs: [],
+        },
+        pVolumes: {
+            points: E(0),
+            times: E(0),
+            upgs: [],
+        },
+        PV_generators: [],
+        studies: {
+            total: 0,
+            spent: 0,
+            gain_vt: [0,0,0],
+            upgs: [],
+        },
+        areaity: {
+            unl: false,
+            powers: E(1),
+            upgs: [0,0,0],
+            metas: 0,
+            autobuys: [false,false,false,false],
         },
         ticks: 0,
         generators: [],
@@ -64,17 +92,21 @@ function wipe() {
             completed: [],
         },
         PA_mult: E(0),
+        PA_mult_autobuyer: false,
         PA_generators: [],
         PA_gen_unls: 0,
         PA_powers: E(0),
+        PV_powers: E(0),
         PG_upgs: [],
         tab: 0,
         stab: 0,
+        respec: false,
         achievements: [],
         unls: [],
     }
     for (let i = 0; i < 8; i++) player.generators.push([E(0),E(0),E(1)])
     for (let i = 0; i < 8; i++) player.PA_generators.push([E(0),E(0),E(1)])
+    for (let i = 0; i < 8; i++) player.PV_generators.push([E(0),E(0),E(1)])
     for (let i = 0; i < 8; i++) player.generators_autobuyer.push([false,false])
 }
 
@@ -133,6 +165,22 @@ function loadPlayer(load) {
     if (load.PG_upgs != undefined) player.PG_upgs = load.PG_upgs
     if (load.metaTiers != undefined) player.metaTiers = ex(load.metaTiers)
     if (load.metas_autobuyer != undefined) player.metas_autobuyer = load.metas_autobuyer
+    if (load.PA_mult_autobuyer != undefined) player.PA_mult_autobuyer = load.PA_mult_autobuyer
+    if (load.pVolumes != undefined) player.pVolumes = {
+        points: ex(load.pVolumes.points),
+        times: ex(load.pVolumes.times),
+        upgs: load.pVolumes.upgs,
+    }
+    if (load.PV_generators != undefined) for (let i = 0; i < 8; i++) for (let j = 0; j < 3; j++) player.PV_generators[i][j] = ex(load.PV_generators[i][j])
+    if (load.PV_powers != undefined) player.PV_powers = ex(load.PV_powers)
+    if (load.studies != undefined) player.studies = load.studies
+    if (load.areaity != undefined) player.areaity = {
+        unl: load.areaity.unl,
+        powers: ex(load.areaity.powers),
+        upgs: load.areaity.upgs,
+        metas: load.areaity.metas,
+        autobuys: load.areaity.autobuys,
+    }
 }
 
 function loadGame() {

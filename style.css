@@ -1,14 +1,20 @@
+@font-face {
+    font-family: Typewriter;
+    src: url('MonospaceTypewriter.ttf');
+}
+
 * {
-    font-family: "Lucida Console", "Courier New", monospace;
+    font-family: Typewriter;
     table-align: center;
-    text-align: center;
+	text-align: center;
 }
 
 body {
     color: white;
     text-shadow: 0px 0px 7px white;
     background-color: black;
-    overflow-x: hidden;
+	overflow-x: hidden;
+	font-size: 14px;
 }
 
 table, tr {
@@ -20,14 +26,14 @@ button {
     border: solid 3px black;
     background-color: white;
     border-radius: 10px;
-    font-size: 15px;
+    font-size: 14px;
 	animation-duration: 0.5s;
 	cursor: pointer;
 }
 
 h1, h2 {
     display: inline;
-    font-size: 25px;
+    font-size: 20px;
 }
 
 .table_center {
@@ -39,7 +45,8 @@ h1, h2 {
 
 .generator_text {
     width: 250px;
-    height: 35px;
+	height: 40px;
+	font-size: 14px;
     text-align: left;
 }
 
@@ -48,9 +55,31 @@ h1, h2 {
 	cursor: default;
 }
 
+.invisible {
+	visibility: hidden;
+}
+
 .prestige {
-	width: 250px;
-    height: 110px;
+	width: 210px;
+    height: 70px;
+    font-size: 11px
+}
+
+.volume {
+	color: #b341e0;
+    background: black;
+    border-color: #b341e0;
+}
+
+.study {
+	width: 180px;
+	height: 90px;
+	margin: 15px;
+	font-size: 0.65rem;
+}
+
+.study.normal {
+	background-color: #b341e0;
 }
 
 .achi_unl {
@@ -64,7 +93,7 @@ h1, h2 {
     padding: 5px;
     color: black;
     text-shadow: 0px 0px 12px white;
-    font-size: 12px;
+    font-size: 10px;
 }
 
 .upg {
@@ -79,6 +108,35 @@ h1, h2 {
 	cursor: default;
 }
 
+.pv_milestones {
+	width: 250px;
+    height: 60px;
+	font-size: 12px;
+	cursor: default;
+}
+
+.pv_milestones.reward {
+	background-color: #8D48C3;
+}
+
+.areaity {
+	width: 200px;
+	height: 75px;
+	font-size: 0.65rem;
+}
+
+.areaity.meta {
+	width: 220px;
+	height: 100px;
+	font-size: 12px;
+}
+
+.theorem {
+	width: 200px;
+	height: 100px;
+	font-size: 0.85rem;
+}
+
 .autobuyer {
 	width: 150px;
 	height: 100px;
@@ -90,7 +148,7 @@ h1, h2 {
 
 .challenge {
     width:400px;
-    height: 175px;
+    height: 180px;
     border: solid 3px white;
     border-radius: 10px;
     font-size: 80%;
@@ -99,9 +157,11 @@ h1, h2 {
     border-radius: 10px;
 }
 
-.challenge_button {
-	font-weight: bold;
-    height: 25px;
+.canvas {
+	top: 0;
+	left: 0;
+	position: absolute;
+	z-index: -999;
 }
 
 [tooltip] {

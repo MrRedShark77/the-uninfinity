@@ -10,21 +10,30 @@
     <script src="js/ExpantaNum.js"></script>
     <script src="js/saves.js"></script>
     <script src="js/main.js"></script>
+    <script src="js/volume.js"></script>
     <script src="js/v.js"></script>
+    <script src="js/canvas.js"></script>
 
     <title>The Uninfinity</title>
 </head>
 <body onload="loadGame()">
     <div id="app">
-        <div style="height: 160px;" class="table_center">
-            <div v-if="player.unls.includes('planckAreas')">
-                You have <b>{{ notate(player.pAreas.points,0) }}</b> Planck Areas<br>
-                <button onclick="transformPL()" class="prestige" v-bind:class="{closed: FORMULA.planckAreas_gain().lt(1)}">Transform Planck Lengths for <b>{{ notate(FORMULA.planckAreas_gain(),0) }}</b> Planck Areas</button>
+        <div style="height: 120px; justify-content: space-around;" class="table_center">
+            <div style="width: 400px;">
+                <div v-if="player.unls.includes('planckAreas')">
+                    You have <b>{{ notate(player.pAreas.points,0) }}</b> Planck Areas<br>
+                    <button onclick="transformPL()" class="prestige" v-bind:class="{invisible: FORMULA.planckAreas_gain().lt(1)}">Transform Planck Lengths for <b>{{ notate(FORMULA.planckAreas_gain(),0) }}</b> Planck Areas.<br><b>+{{ notate(FORMULA.pa_stat_gain(),0) }}</b> stat</button>
+                </div>
+            </div><div style="width: 400px;">
+                <div v-if="player.unls.includes('planckVolumes') || FORMULA.planckVolumes_gain().gte(1)">
+                    You have <b>{{ notate(player.pVolumes.points,0) }}</b> Planck Volumes<br>
+                    <button onclick="transformPA()" class="prestige volume" v-bind:class="{invisible: FORMULA.planckVolumes_gain().lt(1)}"><b>I need to become Real.</b><br>Gain <b>{{ notate(FORMULA.planckVolumes_gain(),0) }}</b> Planck Volumes.</button>
+                </div>
             </div>
         </div>
         You have <h2>{{ notate(player.money,0) }}</h2> Planck Lengths<br>(+{{ notate(FORMULA.gps(0),0) }}/s)<br><br>
         <div class="table_center"><div v-for="t in TABS.length">
-            <button v-on:click="player.tab = t-1; player.stab = 0" v-if="TABS_UNLS[TABS[t-1]]()">{{ TABS[t-1] }}</button>
+            <button v-on:click="player.tab = t-1; player.stab = 0" v-if="TABS_UNLS[TABS[t-1]]()" v-bind:class="{volume: t == 5}">{{ TABS[t-1] }}</button>
         </div></div><br>
         <div v-if="player.tab == 0">
             <div class="table_center"><div v-for="st in STABS['Generators'].length">
@@ -41,30 +50,31 @@
                         <div class="generator_text">Cost: {{ notate(FORMULA.generator_cost(g-1, player.generators[g-1][1], player.generators[g-1][2]),0) }}</div>
                         <div class="generator_text">
                             <button v-bind:class="{closed: player.money.lt(FORMULA.generator_cost(g-1, player.generators[g-1][1], player.generators[g-1][2]))}" v-on:click="buyGenerator(g-1, player.generators[g-1][1], player.generators[g-1][2])">Buy</button>
-                            <button v-bind:class="{closed: player.generators[g-1][1].lt(100)}" v-on:click="tierGenerator(g-1)">Reset for Tier Up</button>
+                            <button v-bind:class="{closed: player.generators[g-1][1].lt(100)}" v-on:click="tierGenerator(g-1)">Tier Up</button>
                         </div>
                     </div><br><div class="table_center" style="justify-content: space-between;">
-                        <div class="generator_text">Multipler Powers<sup>{{ player.multTiers.gte(2)?notate(player.multTiers,0):'' }}</sup> ({{ notate(player.mults,0) }})</div>
+                        <div class="generator_text">Multipler Powers<sup>{{ player.multTiers.gte(2)?notate(player.multTiers,0):'' }}</sup><br>({{ notate(player.mults,0) }}<span v-if="FORMULA.pv_powers_eff.mults_gain().gte(1)"> + {{ notate(FORMULA.pv_powers_eff.mults_gain(),0) }}</span>)</div>
                         <div class="generator_text">x{{ notate(FORMULA.mult_boost(),3) }}</div>
                         <div class="generator_text">(x{{ notate(FORMULA.mult_base(),3) }} per pieces)</div>
                         <div class="generator_text">Cost: {{ notate(FORMULA.mult_cost(player.mults),0) }}</div>
                         <div class="generator_text">
                             <button v-bind:class="{closed: player.money.lt(FORMULA.mult_cost(player.mults))}" onclick="buyMult()">Buy</button>
-                            <button v-bind:class="{closed: player.mults.lt(100)}" onclick="tierMult()">Reset for Tier Up</button>
+                            <button v-bind:class="{closed: player.mults.lt(100)}" onclick="tierMult()">Tier Up</button>
                         </div>
                     </div><div class="table_center" style="justify-content: space-between;">
-                        <div class="generator_text">Meta Powers<sup>{{ player.metaTiers.gte(2)?notate(player.metaTiers,0):'' }}</sup> ({{ notate(player.metas,0) }})</div>
+                        <div class="generator_text">Meta Powers<sup>{{ player.metaTiers.gte(2)?notate(player.metaTiers,0):'' }}</sup><br>({{ notate(player.metas,0) }}<span v-if='player.areaity.metas > 0'> + {{ notate(player.areaity.metas,0) }}</span>)</div>
                         <div class="generator_text">^{{ notate(FORMULA.meta_boost(),3) }}</div>
                         <div class="generator_text">Raise Multipler Base</div>
                         <div class="generator_text">Require: Generators 8<br>({{ notate(FORMULA.gen8_have(),0) }} / {{ notate(FORMULA.meta_cost(player.metas),0) }}) </div>
                         <div class="generator_text">
                             <button v-bind:class="{closed: FORMULA.gen8_have().lt(FORMULA.meta_cost(player.metas))}" onclick="buyMeta()">Reset your Generators & Multipler Powers to get Meta Powers</button>
-                            <button v-bind:class="{closed: player.metas.lt(100)}" onclick="tierMeta()">Reset for Tier Up</button>
+                            <button v-bind:class="{closed: player.metas.lt(100)}" onclick="tierMeta()">Tier Up</button>
                         </div>
                     </div>
                 </div>
             </div><div v-if='player.stab == 1'>
                 You have <h2>{{ notate(player.PA_powers,0) }}</h2> PA Powers, which multiples Length Generators by <h2>{{ notate(FORMULA.pa_powers_eff(),0) }}</h2><br>(+{{ notate(FORMULA.pa_generator.ps(0),0) }}/s)<br><br>
+                <button onclick='buyMaxAG()'>Buy Max</button><br><br>
                 <div>
                     <div v-for="g in 8" class="table_center" style="justify-content: space-between;" v-if="player.PA_gen_unls >= g">
                         <div class="generator_text">Area Generator {{ g }}<sup>{{ player.PA_generators[g-1][2].gte(2)?notate(player.PA_generators[g-1][2],0):'' }}</sup> ({{ notate(player.PA_generators[g-1][1],0) }})</div>
@@ -73,11 +83,27 @@
                         <div class="generator_text">Cost: {{ notate(FORMULA.pa_generator.cost(g-1, player.PA_generators[g-1][1], player.PA_generators[g-1][2]),0) }} PA</div>
                         <div class="generator_text">
                             <button v-bind:class="{closed: player.pAreas.points.lt(FORMULA.pa_generator.cost(g-1, player.PA_generators[g-1][1], player.PA_generators[g-1][2]))}" v-on:click="buyPAGenerator(g-1, player.PA_generators[g-1][1], player.PA_generators[g-1][2])">Buy</button>
-                            <button v-bind:class="{closed: player.PA_generators[g-1][1].lt(100)}" v-on:click="tierPAGenerator(g-1)">Reset for Tier Up</button>
+                            <button v-bind:class="{closed: player.PA_generators[g-1][1].lt(100)}" v-on:click="tierPAGenerator(g-1)">Tier Up</button>
                         </div>
                     </div>
                 </div>
                 <button onclick="unlPAGenerator()" v-bind:class="{closed: player.money.lt(UNL_PA_GEN[player.PA_gen_unls])}">You need <b>{{ notate(UNL_PA_GEN[player.PA_gen_unls]) }}</b> Planck Legnths to unlock new Generator</button>
+            </div><div v-if='player.stab == 2'>
+                You've gained {{ notate(FORMULA.pv_powers_eff.mults_gain(),0) }} Multipler upgrades.<br>
+                You have <h2>{{ notate(player.PV_powers,0) }}</h2> PV Powers. The next Multipler upgrade is at <h2>{{ notate(FORMULA.pv_powers_eff.next_mults(),0) }}</h2><br>
+                (+{{ notate(FORMULA.pv_generator.ps(0),0) }}/s)<br><br>
+                <div>
+                    <div v-for="g in 4" class="table_center" style="justify-content: space-between;">
+                        <div class="generator_text">Volume Generator {{ g }}<sup>{{ player.PV_generators[g-1][2].gte(2)?notate(player.PV_generators[g-1][2],0):'' }}</sup> ({{ notate(player.PV_generators[g-1][1],0) }})</div>
+                        <div class="generator_text">x{{ notate(FORMULA.pv_generator.boost(player.PV_generators[g-1][1], player.PV_generators[g-1][2], g-1),0) }}</div>
+                        <div class="generator_text">{{ notate(player.PV_generators[g-1][0],0) }}</div>
+                        <div class="generator_text">Cost: {{ notate(FORMULA.pv_generator.cost(g-1, player.PV_generators[g-1][1], player.PV_generators[g-1][2]),0) }} PA</div>
+                        <div class="generator_text">
+                            <button v-bind:class="{closed: player.pVolumes.points.lt(FORMULA.pv_generator.cost(g-1, player.PV_generators[g-1][1], player.PV_generators[g-1][2]))}" v-on:click="buyPVGenerator(g-1, player.PV_generators[g-1][1], player.PV_generators[g-1][2])">Buy</button>
+                            <button v-bind:class="{closed: player.PV_generators[g-1][1].lt(100)}" v-on:click="tierPVGenerator(g-1)">Tier Up</button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div><div v-if="player.tab == 1">
             <div v-for='c in ACHIEVEMENTS.unls.col' class="table_center">
@@ -106,7 +132,10 @@
                         <br><span v-if='UPGRADE.pAreas[c*10+r].cur'>Currently: {{ UPGRADE.pAreas[c*10+r].curDesc(UPGRADE.pAreas[c*10+r].cur()) }}</span></button>
                     </div>
                 </div><br>
-                <button v-bind:class='{closed: player.pAreas.points.lt(FORMULA.pa_mult.cost())}' class="upg" onclick="buyPAmult()">You get more PA.<br>Currently: x{{ notate(FORMULA.pa_mult.boost(),0) }}<br>Cost: {{ notate(FORMULA.pa_mult.cost(),0) }} PA</button>
+                <button v-bind:class='{closed: player.pAreas.points.lt(FORMULA.pa_mult.cost(player.PA_mult))}' class="upg" onclick="buyPAmult()">You get more PA.<br>Currently: x{{ notate(FORMULA.pa_mult.boost(),0) }}<br>Cost: {{ notate(FORMULA.pa_mult.cost(player.PA_mult),0) }} PA</button>
+                <div v-if='player.pVolumes.times.gte(MILESTONES[11].req)'>
+                    Auto Buy <input type="checkbox" v-model="player.PA_mult_autobuyer"><br>
+                </div>
             </div><div v-if="player.stab == 1">
                 <div v-for='c in 2' class="table_center">
                     <div v-for='r in 4' class="autobuyer">
@@ -119,7 +148,7 @@
                         Multipler<br><br>
                         Is Active <input type="checkbox" v-model="player.mults_autobuyer[0]"><br>
                         Is Tier <input type="checkbox" v-model="player.mults_autobuyer[1]">
-                    </div><div class="autobuyer" v-if="player.PA_chal.completed.includes(32)">
+                    </div><div class="autobuyer">
                         Meta<br><br>
                         Is Active <input type="checkbox" v-model="player.metas_autobuyer[0]"><br>
                         Is Tier <input type="checkbox" v-model="player.metas_autobuyer[1]">
@@ -133,7 +162,7 @@
                             <b>PA Challenge {{ 2*(c-1)+r }}</b><br>
                             {{ CHALLENGE.pAreas[c*10+r].desc }}
                         </div>
-                        <button class="challenge_button" v-on:click='PAChal(c*10+r)'>{{ chalText(c,r) }}</button><br><br>
+                        <button v-on:click='PAChal(c*10+r)'>{{ chalText(c,r) }}</button><br><br>
                         Goal: {{ notate(CHALLENGE.pAreas[c*10+r].goal) }}<br>
                         Reward: {{ CHALLENGE.pAreas[c*10+r].reward }}<br>
                         <span v-if='CHALLENGE.pAreas[c*10+r].cur'>Currently: {{ CHALLENGE.pAreas[c*10+r].curDesc(CHALLENGE.pAreas[c*10+r].cur()) }}</span>
@@ -148,6 +177,60 @@
                         <br><span v-if='UPGRADE.post_gens[c*10+r].cur'>Currently: {{ UPGRADE.post_gens[c*10+r].curDesc(UPGRADE.post_gens[c*10+r].cur()) }}</span></button>
                     </div>
                 </div>
+            </div><div v-if="player.stab == 4">
+                <button v-bind:class="{closed: player.pAreas.points.lt('e30')}" onclick="if (player.pAreas.points.gte('e30')) player.areaity.unl = true" v-if='!player.areaity.unl'>You need 1e30 Planck Areas to unlock Areaity.</button>
+                <div v-if='player.areaity.unl'>
+                    You have <h2>{{ notate(player.areaity.powers,0) }}</h2> (x{{ notate(FORMULA.areaity.ps(),3) }}/s) Areaity Powers, which multiples Area Generators by <h2>{{ notate(FORMULA.areaity.effect(),3) }}</h2>
+                    <span v-if='FORMULA.areaity.penality().gt(1)'><br>After 1.79e308, will penality areaity production by <h2>/{{ notate(FORMULA.areaity.penality()) }}</h2></span><br><br>
+                    <div class="table_center">
+                        <div v-for='x in 3'>
+                            <button class="areaity" v-on:click="FORMULA.areaity.upgs.buy(x)" v-bind:class="{closed: player.pAreas.points.lt(FORMULA.areaity.upgs[x].cost(player.areaity.upgs[x-1]))}">{{ FORMULA.areaity.upgs[x].desc }} Cost: {{ notate(FORMULA.areaity.upgs[x].cost(player.areaity.upgs[x-1])) }} PA<br>Currently: {{ FORMULA.areaity.upgs[x].curDesc(FORMULA.areaity.upgs[x].cur()) }}</button>
+                            <br><div v-if='player.pVolumes.times.gte(MILESTONES[21].req)'>Auto Buy <input type="checkbox" v-model="player.areaity.autobuys[x-1]"></div>
+                        </div>
+                    </div><br>
+                    Approximately {{ notate(FORMULA.areaity.wait(),1) }} seconds until 1.79e308 Areaity Powers<br><br>
+                    <button onclick="getMeta()" class="areaity meta" v-bind:class='{closed: FORMULA.areaity.meta_gain().lt(1) || FORMULA.areaity.upgs[3].cur().lte(player.areaity.metas)}'>Reset areaity powers for {{ notate(FORMULA.areaity.meta_gain(),0) }} metas.<br>You have {{ notate(player.areaity.metas,0) }} areaity metas.</button>
+                </div>
+            </div>
+        </div><div v-if="player.tab == 4">
+            <div class="table_center"><div v-for="st in STABS['Planck Volume'].length">
+                <button v-on:click="player.stab = st-1;" v-if="STABS_UNLS['Planck Volume'][STABS['Planck Volume'][st-1]]()">{{ STABS['Planck Volume'][st-1] }}</button>
+            </div></div><br>
+            <div v-if="player.stab == 0">
+                <div id="treeStudy" onscroll="resizeCanvas()">
+                    <div>
+                        <button onclick="buyMaxVT()">Buy Max</button> You have {{ notate(FORMULA.studies.have(),0) }} Volume Theorems.
+                        <div class="table_center">
+                            <div v-for='x in 3'>
+                                <button class="theorem" v-on:click="FORMULA.studies[x].buy()" v-bind:class='{closed: FORMULA.studies[x].value().lt(FORMULA.studies[x].cost(player.studies.gain_vt[x-1]))}'>Buy Volume Theorems<br>Cost: {{ notate(FORMULA.studies[x].cost(player.studies.gain_vt[x-1]),0) }} {{ FORMULA.studies[x].costDesc }}</button>
+                            </div>
+                        </div>
+                        Respec volume studies on next Transform PA <input type="checkbox" v-model="player.respec">
+                    </div><div v-for='c in 4' class="table_center">
+                        <div v-for='r in 10'>
+                            <button class="study" v-on:click='buyStudy(c*10+r)'
+                            v-bind:class="{closed: (FORMULA.studies.have().lt(STUDIES[c*10+r].cost) && !player.studies.upgs.includes(c*10+r)) || !STUDIES[c*10+r].unl(), [STUDIES[c*10+r].color]: FORMULA.studies.have().gte(STUDIES[c*10+r].cost) && STUDIES[c*10+r].unl() && !player.studies.upgs.includes(c*10+r), bought: player.studies.upgs.includes(c*10+r)}"
+                            v-if="STUDIES[c*10+r]" v-bind:id='c*10+r'>{{ STUDIES[c*10+r].desc }}<br>Cost: {{ notate(STUDIES[c*10+r].cost,0) }} Volume Theorems<span v-if='STUDIES[c*10+r].cur'><br>Currently: {{ STUDIES[c*10+r].curDesc(STUDIES[c*10+r].cur()) }}</span></button>
+                        </div>
+                    </div>
+                    <canvas id="treeCanvas" class="canvas"></canvas>
+                </div>
+            </div><div v-if="player.stab == 1">
+                <div v-for='c in UPGRADE.pVolumes.col' class="table_center">
+                    <div v-for='r in UPGRADE.pVolumes.row'>
+                        <button class="upg" v-on:click='buyUPG("pVolumes",c*10+r)' v-if='UPGRADE.pVolumes[c*10+r].unl()' 
+                        v-bind:class='{closed: player.pVolumes.points.lt(UPGRADE.pVolumes[c*10+r].cost()) & !player.pVolumes.upgs.includes(c*10+r), bought: player.pVolumes.upgs.includes(c*10+r)}'>
+                        {{ UPGRADE.pVolumes[c*10+r].desc }}<br>Cost: {{ notate(UPGRADE.pVolumes[c*10+r].cost(),0) }} PV
+                        <br><span v-if='UPGRADE.pVolumes[c*10+r].cur'>Currently: {{ UPGRADE.pVolumes[c*10+r].curDesc(UPGRADE.pVolumes[c*10+r].cur()) }}</span></button>
+                    </div>
+                </div>
+            </div><div v-if="player.stab == 2">
+                <div v-for='c in MILESTONES.col' class="table_center">
+                    <div v-for='r in MILESTONES.row' style="text-align: left; margin: 4px;">
+                        {{ notate(MILESTONES[c*10+r].req,0) }} PV resets:<br>
+                        <button class="pv_milestones" v-bind:class='{closed: player.pVolumes.times.lt(MILESTONES[c*10+r].req), reward: player.pVolumes.times.gte(MILESTONES[c*10+r].req)}'>{{ MILESTONES[c*10+r].desc }}</button>
+                    </div>
+                </div><br>
             </div>
         </div>
     </div>
