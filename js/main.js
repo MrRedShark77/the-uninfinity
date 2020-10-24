@@ -381,7 +381,7 @@ const UPGRADE = {
             desc: 'Planck Lengths boost Generators.',
             unl: () => { return true },
             cost: () => E(21),
-            cur: () => { return player.money.add(1).pow(0.1).add(1).log10() },
+            cur: () => { return player.money.add(1).pow(0.1).add(1).log10().add(1) },
             curDesc: (x) => { return 'x'+notate(x) },
         },
         43: {
