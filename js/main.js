@@ -258,7 +258,7 @@ const FORMULA = {
         effect: () => { return player.areaity.powers.add(1).logBase(2).add(1).pow(2) },
         upgs: {
             1: {
-                desc: 'Increase multipler of Areaity gain.',
+                desc: 'Increase multiplier of Areaity gain.',
                 cost: (x) => { return E(10).pow(E(35).add(E(5).mul(x))) },
                 bulk: () => {
                     let bulk = player.pAreas.points.add(1).log10().sub(35).div(5).floor()
@@ -313,7 +313,7 @@ const UPGRADE = {
         row: 3,
         col: 4,
         11: {
-            desc: 'Generators gain a multipler based on time played.',
+            desc: 'Generators gain a multiplier based on time played.',
             unl: () => { return true },
             cost: () => E(1),
             cur: () => {
@@ -373,7 +373,7 @@ const UPGRADE = {
             cost: () => E(8),
         },
         23: {
-            desc: 'Increase starting multipler base. x1.125 -> x1.150',
+            desc: 'Increase starting multiplier base. x1.125 -> x1.150',
             unl: () => { return true },
             cost: () => E(13),
         },
@@ -425,7 +425,7 @@ const UPGRADE = {
             cost: () => E(1e8),
         },
         23: {
-            desc: 'Increase starting multipler per buying Area Generators. x2 -> x20',
+            desc: 'Increase starting multiplier per buying Area Generators. x2 -> x20',
             unl: () => { return true },
             cost: () => E(1e9),
         },
@@ -501,13 +501,13 @@ const CHALLENGE = {
         },
         12: {
             unl: () => { return player.money.gte('e9000') },
-            desc: "Length Generatiors, Multiplers & Metas Tiers cost formula are higher. [1,3,6,...] -> [1,4,10,...]",
+            desc: "Length Generatiors, Multipliers & Metas Tiers cost formula are higher. [1,3,6,...] -> [1,4,10,...]",
             goal: E('e2000'),
             reward: 'Length Generators are 2.25x effective.',
         },
         21: {
             unl: () => { return player.money.gte('e48000') },
-            desc: "You can't buy Multiplers, but Meta Powers boost Length Generators.",
+            desc: "You can't buy Multipliers, but Meta Powers boost Length Generators.",
             goal: E('e5300'),
             reward: 'Meta Powers are 2x effective.',
         },
@@ -527,21 +527,21 @@ const CHALLENGE = {
         },
         32: {
             unl: () => { return player.money.gte('e130000') },
-            desc: "There's only x1.001 multipler base.",
+            desc: "There's only x1.001 multiplier base.",
             goal: E('e21500'),
-            reward: 'Multipler Base are less stronger based on Meta Powers have.',
+            reward: 'Multiplier Base are less stronger based on Meta Powers have.',
             cur: () => { return FORMULA.meta_have().add(1).log10().add(1).div(100).add(1) },
             curDesc: (x) => { return notate(x.sub(1).mul(100))+'%' },
         },
         41: {
             unl: () => { return player.money.gte('e203000') },
-            desc: "Lower raise Length Generators based on Multipler Powers have.",
+            desc: "Lower raise Length Generators based on Multiplier Powers have.",
             goal: E('e27000'),
             reward: 'Raise Length Generators by 1.15.',
         },
         42: {
             unl: () => { return player.money.gte(1/0) },
-            desc: "Length Generatiors, Multiplers & Metas Tiers cost formula are raised by 2.",
+            desc: "Length Generatiors, Multipliers & Metas Tiers cost formula are raised by 2.",
             goal: E('e150000'),
             reward: 'Length Generator 7 & 8 are 10x more effective.',
         },
@@ -594,7 +594,7 @@ const ACHIEVEMENTS = {
         },
         19: {
             title: 'Where is 9th achievements?',
-            desc: 'Buy 9 Multipler Powers. Reward: Generators is 5% stronger.',
+            desc: 'Buy 9 Multiplier Powers. Reward: Generators is 5% stronger.',
             req: () => { return player.mults.gte(9) },
         },
         20: {
@@ -613,13 +613,13 @@ const ACHIEVEMENTS = {
             req: () => { return player.metas.gte(2) },
         },
         23: {
-            title: 'Upgrade Multipler',
-            desc: 'Tier Multiplers (if Multipler Powers reached 100). Reward: Multipler Base is 2% stronger.',
+            title: 'Upgrade Multiplier',
+            desc: 'Tier Multipliers (if Multiplier Powers reached 100). Reward: Multiplier Base is 2% stronger.',
             req: () => { return player.multTiers.gte(2) },
         },
         24: {
             title: 'Upgrade Again',
-            desc: 'Reach Multipler Tier 3. Reward: Meta Effect is 10% stronger.',
+            desc: 'Reach Multiplier Tier 3. Reward: Meta Effect is 10% stronger.',
             req: () => { return player.multTiers.gte(3) },
         },
         25: {
@@ -644,7 +644,7 @@ const ACHIEVEMENTS = {
         },
         29: {
             title: "Why you need NO POWERS to pass?",
-            desc: 'Complete PA Challenge 3 without having Multiplers, Metas and Sacrifices. Reward: All Generators are less stronger based on Meta Powers.',
+            desc: 'Complete PA Challenge 3 without having Multipliers, Metas and Sacrifices. Reward: All Generators are less stronger based on Meta Powers.',
             req: () => { return false },
         },
         30: {
@@ -653,8 +653,8 @@ const ACHIEVEMENTS = {
             req: () => { return player.money.gte(1e300) },
         },
         31: {
-            title: 'ÜBER Multiplers',
-            desc: 'Reach Multipler Tier 10. Reward: Multiplers are 5% stronger.',
+            title: 'ÜBER Multipliers',
+            desc: 'Reach Multiplier Tier 10. Reward: Multipliers are 5% stronger.',
             req: () => { return player.multTiers.gte(10) },
         },
         32: {
@@ -668,7 +668,7 @@ const ACHIEVEMENTS = {
             req: () => { return player.PA_powers.gte('1e4') },
         },
         34: {
-            title: 'HOW CAN YOU GET 1e1000x MULTIPLER?!',
+            title: 'HOW CAN YOU GET 1e1000x MULTIPLIER?!',
             desc: 'Reach 1e10 PA Powers.',
             req: () => { return player.PA_powers.gte('1e10') },
         },
@@ -695,7 +695,7 @@ const ACHIEVEMENTS = {
         },
         39: {
             title: 'I didnt get money per seconds',
-            desc: 'Transform PL for 1e9 PA in one run. Reward: Increase multipler of upgrade to more PA. x2 -> x2.5',
+            desc: 'Transform PL for 1e9 PA in one run. Reward: Increase multiplier of upgrade to more PA. x2 -> x2.5',
             req: () => { return false },
         },
         40: {

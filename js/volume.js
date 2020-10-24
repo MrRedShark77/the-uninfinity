@@ -5,7 +5,7 @@ const MILESTONES = {
     col: 2,
     11: {
         req: E(1),
-        desc: 'Unlock the PA multipler autobuyer',
+        desc: 'Unlock the PA multiplier autobuyer',
     },
     12: {
         req: E(2),
@@ -26,7 +26,7 @@ const STUDIES = {
         branches: [],
         unl: () => { return true },
         color: 'normal',
-        desc: 'Multipler Powers boost Volume Generator 1.',
+        desc: 'Multiplier Powers boost Volume Generator 1.',
         cost: E(1),
         cur: () => { return E(10).pow(player.mults.add(player.multTiers.sub(1).mul(100)).div(1500)) },
         curDesc: (x) => { return 'x'+notate(x,1) },
@@ -42,7 +42,7 @@ const STUDIES = {
         branches: [11],
         unl: () => { return player.studies.upgs.includes(11) },
         color: 'normal',
-        desc: 'Gain more PA stat based on Multipler powers.',
+        desc: 'Gain more PA stat based on Multiplier powers.',
         cost: E(2),
         cur: () => { return player.mults.add(player.multTiers.sub(1).mul(100)).add(1).pow(0.9) },
         curDesc: (x) => { return 'x'+notate(x,1) },

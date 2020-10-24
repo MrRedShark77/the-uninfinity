@@ -53,7 +53,7 @@
                             <button v-bind:class="{closed: player.generators[g-1][1].lt(100)}" v-on:click="tierGenerator(g-1)">Tier Up</button>
                         </div>
                     </div><br><div class="table_center" style="justify-content: space-between;">
-                        <div class="generator_text">Multipler Powers<sup>{{ player.multTiers.gte(2)?notate(player.multTiers,0):'' }}</sup><br>({{ notate(player.mults,0) }}<span v-if="FORMULA.pv_powers_eff.mults_gain().gte(1)"> + {{ notate(FORMULA.pv_powers_eff.mults_gain(),0) }}</span>)</div>
+                        <div class="generator_text">Multiplier Powers<sup>{{ player.multTiers.gte(2)?notate(player.multTiers,0):'' }}</sup><br>({{ notate(player.mults,0) }}<span v-if="FORMULA.pv_powers_eff.mults_gain().gte(1)"> + {{ notate(FORMULA.pv_powers_eff.mults_gain(),0) }}</span>)</div>
                         <div class="generator_text">x{{ notate(FORMULA.mult_boost(),3) }}</div>
                         <div class="generator_text">(x{{ notate(FORMULA.mult_base(),3) }} per pieces)</div>
                         <div class="generator_text">Cost: {{ notate(FORMULA.mult_cost(player.mults),0) }}</div>
@@ -64,10 +64,10 @@
                     </div><div class="table_center" style="justify-content: space-between;">
                         <div class="generator_text">Meta Powers<sup>{{ player.metaTiers.gte(2)?notate(player.metaTiers,0):'' }}</sup><br>({{ notate(player.metas,0) }}<span v-if='player.areaity.metas > 0'> + {{ notate(player.areaity.metas,0) }}</span>)</div>
                         <div class="generator_text">^{{ notate(FORMULA.meta_boost(),3) }}</div>
-                        <div class="generator_text">Raise Multipler Base</div>
+                        <div class="generator_text">Raise Multiplier Base</div>
                         <div class="generator_text">Require: Generators 8<br>({{ notate(FORMULA.gen8_have(),0) }} / {{ notate(FORMULA.meta_cost(player.metas),0) }}) </div>
                         <div class="generator_text">
-                            <button v-bind:class="{closed: FORMULA.gen8_have().lt(FORMULA.meta_cost(player.metas))}" onclick="buyMeta()">Reset your Generators & Multipler Powers to get Meta Powers</button>
+                            <button v-bind:class="{closed: FORMULA.gen8_have().lt(FORMULA.meta_cost(player.metas))}" onclick="buyMeta()">Reset your Generators & Multiplier Powers to get Meta Powers</button>
                             <button v-bind:class="{closed: player.metas.lt(100)}" onclick="tierMeta()">Tier Up</button>
                         </div>
                     </div>
@@ -89,8 +89,8 @@
                 </div>
                 <button onclick="unlPAGenerator()" v-bind:class="{closed: player.money.lt(UNL_PA_GEN[player.PA_gen_unls])}">You need <b>{{ notate(UNL_PA_GEN[player.PA_gen_unls]) }}</b> Planck Legnths to unlock new Generator</button>
             </div><div v-if='player.stab == 2'>
-                You've gained {{ notate(FORMULA.pv_powers_eff.mults_gain(),0) }} Multipler upgrades.<br>
-                You have <h2>{{ notate(player.PV_powers,0) }}</h2> PV Powers. The next Multipler upgrade is at <h2>{{ notate(FORMULA.pv_powers_eff.next_mults(),0) }}</h2><br>
+                You've gained {{ notate(FORMULA.pv_powers_eff.mults_gain(),0) }} Multiplier upgrades.<br>
+                You have <h2>{{ notate(player.PV_powers,0) }}</h2> PV Powers. The next Multiplier upgrade is at <h2>{{ notate(FORMULA.pv_powers_eff.next_mults(),0) }}</h2><br>
                 (+{{ notate(FORMULA.pv_generator.ps(0),0) }}/s)<br><br>
                 <div>
                     <div v-for="g in 4" class="table_center" style="justify-content: space-between;">
@@ -145,7 +145,7 @@
                     </div>
                 </div><div class="table_center">
                     <div class="autobuyer">
-                        Multipler<br><br>
+                        Multiplier<br><br>
                         Is Active <input type="checkbox" v-model="player.mults_autobuyer[0]"><br>
                         Is Tier <input type="checkbox" v-model="player.mults_autobuyer[1]">
                     </div><div class="autobuyer">
