@@ -228,19 +228,23 @@ const FORMULA = {
             costDesc: 'PV',
             buy: () => {
                 let cost = FORMULA.studies[3].cost(player.studies.gain_vt[2])
-                if (player.pVolumes.points.gte(cost)) {
-                    player.pVolumes.points = player.pVolumes.points.sub(cost)
-                    player.studies.gain_vt[2]++
-                    player.studies.total++
-                }
+                if (player.PV_generators[0][1].gte(1)) {
+                    if (player.pVolumes.points.gte(cost)) {
+                        player.pVolumes.points = player.pVolumes.points.sub(cost)
+                        player.studies.gain_vt[2]++
+                        player.studies.total++
+                    }
+                } else alert('Buy Volume Generator 1 first!')
             },
             max: () => {
                 let bulk = player.pVolumes.points.add(1).logBase(2).floor().toNumber()
-                if (player.studies.gain_vt[2] < bulk) {
-                    player.studies.total += bulk - player.studies.gain_vt[2]
-                    player.studies.gain_vt[2] = bulk
-                    player.pVolumes.points = player.pVolumes.points.sub(FORMULA.studies[3].cost(bulk-1))
-                }
+                if (player.PV_generators[0][1].gte(1)) {
+                    if (player.studies.gain_vt[2] < bulk) {
+                        player.studies.total += bulk - player.studies.gain_vt[2]
+                        player.studies.gain_vt[2] = bulk
+                        player.pVolumes.points = player.pVolumes.points.sub(FORMULA.studies[3].cost(bulk-1))
+                    }
+                } else alert('Buy Volume Generator 1 first!')
             },
         },
     },
