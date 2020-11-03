@@ -6,14 +6,14 @@ var player;
 var chalText = (c, r) => { return (player.PA_chal.active == c*10+r)?(player.money.gte(CHALLENGE.pAreas[c*10+r].goal)?"Finish":'Exit'):(player.PA_chal.completed.includes(c*10+r)?'Finished':'Start') }
 
 const EXP_COST = [E(2),E(3),E(5),E(8),E(12),E(18),E(25),E(36)]
-const UNL_PA_GEN = [E('e101500'),E('e108000'),E('e130000'),E('e340000'),E('e850000'),E('e1500000'),E('e2500000'),E(Infinity)]
+const UNL_PA_GEN = [E('e101500'),E('e108000'),E('e130000'),E('e340000'),E('e850000'),E('e1500000'),E('e2500000'),E('e4000000'),E(Infinity)]
 
 const TABS = ['Generators','Achievements','Options','Planck Area','Planck Volume']
 
 const STABS = {
     'Planck Area': ['Upgrades', 'Autobuyers', 'Challenges','Post-Generators','Areaity'],
     'Generators': ['Length Generators','Area Generators','Volume Generators'],
-    'Planck Volume': ['Volume studies', 'Volume upgrades', 'Volume milestones'],
+    'Planck Volume': ['Volume studies', 'Volume upgrades', 'Volume milestones', 'Volume challenges'],
 }
 
 const TABS_UNLS = {
@@ -41,6 +41,7 @@ const STABS_UNLS = {
         'Volume studies': () => { return true },
         'Volume upgrades': () => { return true },
         'Volume milestones': () => { return true },
+        'Volume challenges': () => { return true },
     }
 }
 
@@ -55,9 +56,10 @@ const FUNCTIONS = {
 const FORMULA = {
     generator_cost: (x, y, z) => {
         if ((player.PA_chal.active == 22 || player.PA_chal.active == 31) && (x == 6 || x == 7)) return Infinity
-        return y.lt(100)?E(10).pow(EXP_COST[x].mul(FUNCTIONS[0](z)).mul(y.add(1).add(z.sub(1).mul(100))).sub(1)):Infinity
+        if (z.gte(100)) return Infinity
+        return y.lt(100)?E(10).pow(EXP_COST[x].mul(FUNCTIONS[0](z.add(player.gen_tetr[x].sub(1).mul(100)).mul(FUNCTIONS[0](player.gen_tetr[x])))).mul(y.add(1).add(z.sub(1).mul(100)).add(player.gen_tetr[x].sub(1).mul(10000))).sub(1)):Infinity
     },
-    generator_boost: (x, y, z) => { return E(y.add(player.pAreas.upgs.includes(12)?1.5:1)
+    generator_boost: (x, y, z) => { return E(y.add(player.gen_tetr[z].sub(1).mul(100)).add(player.pAreas.upgs.includes(12)?1.5:1)
         .mul(player.achievements.includes(19)?1.05:1)
         .mul(player.achievements.includes(20)?1.05:1)
         .mul((player.achievements.includes(28) && z == 7)?1.5:1)
@@ -67,7 +69,7 @@ const FORMULA = {
         .mul(player.achievements.includes(50)?1.25:1)
         .mul(player.PA_chal.completed.includes(12)?2.25:1)
         .mul((player.PA_chal.completed.includes(22)&(z == 6 || z == 7))?10:1))
-        .pow(x.add(y.sub(1).mul(100)))
+        .pow(x.add(y.sub(1).mul(100)).add(player.gen_tetr[z].sub(1).mul(10000)))
         .mul(FORMULA.mult_boost())
         .mul(player.pAreas.upgs.includes(11)?UPGRADE.pAreas[11].cur():1)
         .mul(player.pAreas.upgs.includes(41)?UPGRADE.pAreas[41].cur():1)
@@ -81,40 +83,68 @@ const FORMULA = {
         .mul((z == 5)?(player.pAreas.upgs.includes(31)?UPGRADE.pAreas[31].cur():1):1)
         .mul((z == 6)?(player.pAreas.upgs.includes(22)?UPGRADE.pAreas[22].cur():1):1)
         .mul((z == 7)?player.sacrifice.mul(player.pAreas.upgs.includes(21)?UPGRADE.pAreas[21].cur():1):1)
+        .mul((z < 7)?(player.studies.upgs.includes(61)?STUDIES[61].cur():1):1)
+        .mul(player.studies.upgs.includes(82)?STUDIES[82].cur():1)
+        .mul(player.studies.upgs.includes(111)?'e200000':1)
         .mul(FORMULA.pa_powers_eff())
         .pow((player.PA_chal.active == 21 || player.PA_chal.active == 31)?FORMULA.meta_boost().pow(1/2):1)
-        .pow((player.PA_chal.active == 41)?(1/player.mults.add(player.multTiers.sub(1).mul(100)).add(1).log10().add(1)):1)
+        .pow((player.PA_chal.active == 41)?(1/player.mults.add(player.multTiers.sub(1).mul(100)).add(player.multTetrs.sub(1).mul(10000)).add(1).log10().add(1)):1)
         .pow(player.PA_chal.completed.includes(41)?1.15:1)
+        .pow(player.gen_tetr[z])
         .div((player.PA_chal.active == 11 || player.PA_chal.active == 31)?player.money.add(1).pow(0.1):1)
     },
     generator_bulk: (x, y, z) => {
         if ((player.PA_chal.active == 22 || player.PA_chal.active == 31) && (x == 6 || x == 7)) return E(0)
-        return E(y).log10().add(1).div(EXP_COST[x]).div(FUNCTIONS[0](z)).sub(z.sub(1).mul(100)).floor().max(0).min(100)
+        if (z.gte(100)) return E(0)
+        return E(y).log10().add(1).div(EXP_COST[x]).div(FUNCTIONS[0](z.add(player.gen_tetr[x].sub(1).mul(100)).mul(FUNCTIONS[0](player.gen_tetr[x])))).sub(z.sub(1).mul(100)).sub(player.gen_tetr[x].sub(1).mul(10000)).floor().max(0).min(100)
     },
     gps: (x) => { return player.generators[x][0].mul(FORMULA.generator_boost(player.generators[x][1], player.generators[x][2], x)) },
-    mult_cost: (x) => { return (x.lt(100))?((player.PA_chal.active == 21 || player.PA_chal.active == 31)?Infinity:E(10).pow(E(x).add(player.multTiers.sub(1).mul(100)).mul(FUNCTIONS[0](player.multTiers)).add(3))):Infinity },
-    mult_boost: () => { return E(FORMULA.mult_base()).pow(player.mults.add(player.multTiers.sub(1).mul(100)).add(FORMULA.pv_powers_eff.mults_gain())) },
+    mult_cost: (x) => {
+        if (player.multTiers.gte(100)) return E(Infinity)
+        return (x.lt(100))?((player.PA_chal.active == 21 || player.PA_chal.active == 31)?Infinity:E(10).pow(E(x).add(player.multTiers.sub(1).mul(100)).add(player.multTetrs.sub(1).mul(10000)).mul(FUNCTIONS[0](player.multTiers.add(player.multTetrs.sub(1).mul(100)).mul(FUNCTIONS[0](player.multTetrs)))).add(3))):Infinity
+    },
+    mult_boost: () => { return E(FORMULA.mult_base()).pow(player.mults.add(player.multTiers.sub(1).mul(100)).add(player.multTetrs.sub(1).mul(10000)).add(FORMULA.pv_powers_eff.mults_gain())) },
     mult_base: () => {
         let base = E(player.pAreas.upgs.includes(23)?1.15:1.125)
+        if (player.studies.upgs.includes(71)) base = E(1.25)
         if (player.PA_chal.active == 32) base = E(1.001)
         return base.mul(player.PA_chal.completed.includes(32)?CHALLENGE.pAreas[32].cur():1)
-        .pow(FORMULA.meta_boost().mul(player.multTiers)
+        .pow(FORMULA.meta_boost().mul(player.multTiers.add(player.multTetrs.sub(1).mul(100)))
+        .mul(player.multTetrs)
         .mul(player.achievements.includes(23)?1.02:1)
-        .mul(player.achievements.includes(31)?1.05:1))
+        .mul(player.achievements.includes(31)?1.05:1)
+        .mul(player.achievements.includes(55)?1.10:1)
+        .mul(player.studies.upgs.includes(73)?STUDIES[73].cur():1))
+        .pow((player.volume_chal.active == 21)?0.01:1)
     },
-    mult_bulk: (x) => { return (player.PA_chal.active == 21 || player.PA_chal.active == 31)?E(0):E(x).log10().sub(3).div(FUNCTIONS[0](player.multTiers)).sub(player.multTiers.sub(1).mul(100)).add(1).floor().max(0).min(100) },
-    meta_cost: () => { return (player.metas < 100)?FORMULA.meta_have().mul(2).mul(FUNCTIONS[0](player.metaTiers.sub(1).div(player.studies.upgs.includes(32)?2:1)).add(1)).add(1).floor():E(Infinity) },
-    meta_boost: () => { return FORMULA.meta_have().add(player.areaity.metas)
+    mult_bulk: (x) => {
+        if (player.multTiers.gte(100)) return E(0)
+        return (player.PA_chal.active == 21 || player.PA_chal.active == 31)?E(0):E(x).log10().sub(3).div(FUNCTIONS[0](player.multTiers.add(player.multTetrs.sub(1).mul(100)).mul(FUNCTIONS[0](player.multTetrs)))).sub(player.multTiers.sub(1).mul(100)).sub(player.multTetrs.sub(1).mul(10000)).add(1).floor().max(0).min(100) },
+    meta_tier_cost: () => {
+        let mult = 1
+        if (player.studies.upgs.includes(32)) mult = 0.5
+        return mult
+    },
+    meta_cost: () => {
+        return (player.metas < 100)?FORMULA.meta_have().mul(2).mul(FUNCTIONS[0](player.metaTiers.sub(1).mul(FORMULA.meta_tier_cost())).floor().add(1)).add(1).floor():E(Infinity)
+    },
+    meta_boost: () => { return FORMULA.meta_have().add(player.areaity.metas * (player.studies.upgs.includes(153)?1.5:1))
         .mul(player.metaTiers)
         .mul(player.achievements.includes(24)?1.1:1)
         .mul(player.achievements.includes(27)?1.25:1)
         .mul(player.pAreas.upgs.includes(42)?2:1)
         .mul(player.PA_chal.completed.includes(21)?2:1)
         .add(1).pow(1/3)
+        .mul(CHALLENGE.pVolumes[21].cur())
     },
-    meta_bulk: () => { return FORMULA.gen8_have().sub(player.metaTiers.sub(1).mul(200).mul(FUNCTIONS[0](player.metaTiers.sub(1).div(player.studies.upgs.includes(32)?2:1)).add(1))).add(E(2).mul(FUNCTIONS[0](player.metaTiers.sub(1).div(player.studies.upgs.includes(32)?2:1)).add(1)).sub(1)).div(2).div(FUNCTIONS[0](player.metaTiers.sub(1).div(player.studies.upgs.includes(32)?2:1)).add(1)).floor().min(100) },
+    meta_bulk: () => {
+        return FORMULA.gen8_have().sub(player.metaTiers.sub(1).mul(200)
+        .mul(FUNCTIONS[0](player.metaTiers.sub(1).mul(FORMULA.meta_tier_cost())).floor().add(1)))
+        .add(E(2).mul(FUNCTIONS[0](player.metaTiers.sub(1).mul(FORMULA.meta_tier_cost())).floor().add(1)).sub(1)).div(2)
+        .div(FUNCTIONS[0](player.metaTiers.sub(1).mul(FORMULA.meta_tier_cost())).floor().add(1)).floor().min(100)
+    },
     meta_have: () => { return player.metas.add(player.metaTiers.sub(1).mul(100)) },
-    gen8_have: () => { return player.generators[7][1].add(player.generators[7][2].sub(1).mul(100)) },
+    gen8_have: () => { return player.generators[7][1].add(player.generators[7][2].sub(1).mul(100)).add(player.gen_tetr[7].sub(1).mul(9900)) },
     sacrifice: () => {
         let mul = player.money.add(1)
         if (player.pAreas.upgs.includes(43)) mul = mul.pow(1/10)
@@ -124,12 +154,16 @@ const FORMULA = {
     planckAreas_gain: () => {
         let formula = player.money.add(1).log10().div(100).sub(2).pow(1/2)
         if (player.PG_upgs.includes(22)) formula = player.money.add(1).pow(1/300).add(1).log10()
+        if (player.studies.upgs.includes(91)) formula = player.money.add(1).pow(1/300).add(1).logBase(5).pow(2)
         return formula
         .mul(FORMULA.pa_mult.boost())
         .mul(player.PG_upgs.includes(13)?UPGRADE.post_gens[13].cur():1)
         .mul(player.PG_upgs.includes(33)?UPGRADE.post_gens[33].cur():1)
         .mul(player.studies.upgs.includes(31)?STUDIES[31].cur():1)
+        .mul(player.studies.upgs.includes(42)?1e6:1)
+        .mul(player.studies.upgs.includes(151)?STUDIES[151].cur():1)
         .pow(player.PG_upgs.includes(41)?1.03:1)
+        .pow(player.achievements.includes(51)?1.1:1)
         .floor().max(0)
     },
     pa_stat_gain: () => {
@@ -137,15 +171,33 @@ const FORMULA = {
         .mul(player.studies.upgs.includes(22)?STUDIES[22].cur():1)
     },
     planckVolumes_gain: () => {
-        return E(10).pow(player.pAreas.points.add(1).log10().div(36).sub(1).max(-0.01)).floor()
+        if (player.pAreas.points.add(1).log10().lt(36)) return E(0)
+        return E(10).pow(player.pAreas.points.add(1).log10().div(36).sub(1))
+        .mul(player.studies.upgs.includes(51)?7:1)
+        .mul(FORMULA.pv_mult.boost())
+        .floor()
     },
     pa_mult: {
         cost: (x) => { return E(4).pow(x).mul(10) },
         boost: () => { return E(player.achievements.includes(39)?2.5:2).pow(player.PA_mult) },
         bulk: () => {
             if (player.pAreas.points.lt(10)) return E(0)
-            return player.pAreas.points.add(1).div(10).logBase(4).add(1).floor()
+            return player.pAreas.points.add(1).div(10).logBase(4).add(1).floor().max(0)
         }, 
+    },
+    pv_mult: {
+        cost: (x) => { return E(10).pow(x.add(1)) },
+        boost: () => { return E(5).pow(player.PV_mult) },
+        bulk: () => {
+            return player.pVolumes.points.max(1).log10().floor().max(0)
+        },
+        buy: () => {
+            let cost = FORMULA.pv_mult.cost(player.PV_mult)
+            if (player.pVolumes.points.gte(cost)) {
+                player.pVolumes.points = player.pVolumes.points.sub(cost)
+                player.PV_mult = player.PV_mult.add(1)
+            }
+        }
     },
     pa_generator: {
         ps: (x) => { return player.PA_generators[x][0].mul(FORMULA.pa_generator.boost(player.PA_generators[x][1], player.PA_generators[x][2], x)) },
@@ -158,11 +210,16 @@ const FORMULA = {
             .mul(player.areaity.unl?FORMULA.areaity.effect():1)
             .mul(player.pVolumes.upgs.includes(11)?UPGRADE.pVolumes[11].cur():1)
             .mul(player.pVolumes.upgs.includes(12)?UPGRADE.pVolumes[12].cur():1)
+            .mul((z == 0)?(CHALLENGE.pVolumes[12].cur()[0]):1)
+            .mul((z == 3)?(player.studies.upgs.includes(62)?STUDIES[62].cur():1):1)
+            .mul(player.studies.upgs.includes(72)?STUDIES[72].cur():1)
+            .mul(player.studies.upgs.includes(112)?1e50:1)
         },
         bulk: (x, y, z) => { return E(y).log10().add(1).div(EXP_COST[x]).div(FUNCTIONS[0](z)).sub(z.sub(1).mul(100)).floor().max(0).min(100) },
     },
     pa_powers_eff: () => {
-        return player.PA_powers.add(1).pow(100).pow(player.PG_upgs.includes(21)?UPGRADE.post_gens[21].cur():1)
+        if (player.volume_chal.active == 12) return E(1)
+        return player.PA_powers.add(1).pow(100).pow(player.PG_upgs.includes(21)?UPGRADE.post_gens[21].cur():1).pow(CHALLENGE.pVolumes[12].cur()[1]).pow(player.studies.upgs.includes(152)?STUDIES[152].cur():1)
     },
     pv_generator: {
         ps: (x) => { return player.PV_generators[x][0].mul(FORMULA.pv_generator.boost(player.PV_generators[x][1], player.PV_generators[x][2], x)) },
@@ -170,17 +227,27 @@ const FORMULA = {
         boost: (x, y, z) => {
             return E(E(4).mul(y)).pow(x.add(y.sub(1).mul(100)))
             .mul((z == 0)?(player.studies.upgs.includes(11)?STUDIES[11].cur():1):1)
+            .mul(player.studies.upgs.includes(63)?STUDIES[63].cur():1)
+            .mul(player.studies.upgs.includes(83)?STUDIES[83].cur():1)
+            .mul(player.studies.upgs.includes(101)?1e3:1)
+            .mul(player.pVolumes.upgs.includes(21)?UPGRADE.pVolumes[21].cur():1)
+            .mul(player.pVolumes.upgs.includes(22)?UPGRADE.pVolumes[22].cur():1)
+            .mul(CHALLENGE.pVolumes[11].cur())
         },
         bulk: (x, y, z) => { return E(y).log10().add(1).div(VOL_GEN_COST[x]).div(FUNCTIONS[0](z)).sub(z.sub(1).mul(100)).floor().max(0).min(100) },
     },
     pv_powers_eff: {
-        mults_gain: () => { return player.PV_powers.div(10).logBase(4/3).max(0).floor() },
-        next_mults: () => { return E(4/3).pow(FORMULA.pv_powers_eff.mults_gain().add(1)).mul(10).floor() },
+        req_base: () => { return player.studies.upgs.includes(121)?(11/9):(4/3) },
+        mults_gain: () => {
+            if (player.volume_chal.active == 11) return E(0)
+            return player.PV_powers.div(10).logBase(FORMULA.pv_powers_eff.req_base()).max(0).floor()
+        },
+        next_mults: () => { return E(FORMULA.pv_powers_eff.req_base()).pow(FORMULA.pv_powers_eff.mults_gain().add(1)).mul(10).floor() },
     },
     studies: {
         have: () => { return E(player.studies.total).sub(player.studies.spent) },
         1: {
-            cost: (x) => { return E(10).pow(E(x+1).pow(3).mul(1e4)) },
+            cost: (x) => { return E(10).pow(E(x+1).pow(2.25).mul(1e4)) },
             value: () => { return player.money },
             costDesc: 'PL',
             buy: () => {
@@ -192,7 +259,7 @@ const FORMULA = {
                 }
             },
             max: () => {
-                let bulk = player.money.add(1).log10().div(1e4).pow(1/3).floor().toNumber()
+                let bulk = player.money.add(1).log10().div(1e4).pow(1/2.25).floor().toNumber()
                 if (player.studies.gain_vt[0] < bulk) {
                     player.studies.total += bulk - player.studies.gain_vt[0]
                     player.studies.gain_vt[0] = bulk
@@ -238,6 +305,7 @@ const FORMULA = {
             },
             max: () => {
                 let bulk = player.pVolumes.points.add(1).logBase(2).floor().toNumber()
+                if (player.pVolumes.points.gte(1)) bulk++
                 if (player.PV_generators[0][1].gte(1)) {
                     if (player.studies.gain_vt[2] < bulk) {
                         player.studies.total += bulk - player.studies.gain_vt[2]
@@ -250,16 +318,24 @@ const FORMULA = {
     },
     areaity: {
         ps: () => { return FORMULA.areaity.upgs[1].cur()
+            .mul(player.studies.upgs.includes(81)?STUDIES[81].cur():1)
             .pow(FORMULA.areaity.upgs[2].cur())
             .pow(player.achievements.includes(43)?1.5:1)
-            .div(FORMULA.areaity.penality()).max(1) },
+            .pow(player.achievements.includes(52)?2:1)
+            .div(FORMULA.areaity.penality()).max(1)
+        },
         meta_gain: () => { return player.areaity.powers.add(1).log10().div(E('1.79e308').log10()).floor() },
         penality: () => {
             if (player.areaity.powers.lt('1.79e308')) return E(1)
             return E(3).pow(player.areaity.powers.add(1).log10().div(E('1.79e308').log10()).sub(1))
         },
         wait: () => { return E('1.79e308').log10().sub(player.areaity.powers.add(1).log10()).div(FORMULA.areaity.ps().log10()).max(0) },
-        effect: () => { return player.areaity.powers.add(1).logBase(2).add(1).pow(2) },
+        effect: () => {
+            let num = player.areaity.powers.add(1)
+            if (player.studies.upgs.includes(44)) num = num.pow(0.035)
+            else num = num.logBase(2).add(1).pow(2)
+            return num
+        },
         upgs: {
             1: {
                 desc: 'Increase multiplier of Areaity gain.',
@@ -310,6 +386,16 @@ const FORMULA = {
             }
         },
     },
+    v_chal_text: (x) => {
+        if (player.volume_chal.enabled != x) return (FORMULA.v_chal_times(x) < 5)?'Locked':'Finished'
+        if (player.volume_chal.active != x) return 'Start'
+        if (player.pAreas.points.gte(CHALLENGE.pVolumes[x].goal())) return 'Finish'
+        return 'Exit'
+    },
+    v_chal_times: (x) => {
+        if (player.volume_chal.completed[x]) return player.volume_chal.completed[x]
+        return 0
+    }
 }
 
 const UPGRADE = {
@@ -461,18 +547,18 @@ const UPGRADE = {
         },
         42: {
             desc: 'Placeholder.',
-            unl: () => { return true },
+            unl: () => { return false },
             cost: () => E(1/0),
         },
         43: {
             desc: 'Placeholder.',
-            unl: () => { return true },
+            unl: () => { return false },
             cost: () => E(1/0),
         },
     },
     pVolumes: {
         row: 2,
-        col: 1,
+        col: 2,
         11: {
             desc: 'Area Generators is multipled based on unspent PV.',
             unl: () => { return true },
@@ -485,6 +571,20 @@ const UPGRADE = {
             unl: () => { return true },
             cost: () => E(15),
             cur: () => { return player.pVolumes.times.add(1).div(50).add(1).pow(player.pVolumes.times.mul(2).add(1).logBase(4).add(1)).add(1).pow(2) },
+            curDesc: (x) => { return notate(x)+'x' },
+        },
+        21: {
+            desc: 'Volume Generators is multipled based on total Volume Studies.',
+            unl: () => { return true },
+            cost: () => E(5e5),
+            cur: () => { return E(player.studies.total+1).pow(2) },
+            curDesc: (x) => { return notate(x)+'x' },
+        },
+        22: {
+            desc: 'Volume Generators is multipled based on time played.',
+            unl: () => { return true },
+            cost: () => E(5e7),
+            cur: () => { return E(player.ticks+1).pow(0.45) },
             curDesc: (x) => { return notate(x)+'x' },
         },
     },
@@ -533,7 +633,7 @@ const CHALLENGE = {
             unl: () => { return player.money.gte('e130000') },
             desc: "There's only x1.001 multiplier base.",
             goal: E('e21500'),
-            reward: 'Multiplier Base are less stronger based on Meta Powers have.',
+            reward: 'Multiplier Base are stronger based on Meta Powers have.',
             cur: () => { return FORMULA.meta_have().add(1).log10().add(1).div(100).add(1) },
             curDesc: (x) => { return notate(x.sub(1).mul(100))+'%' },
         },
@@ -550,12 +650,42 @@ const CHALLENGE = {
             reward: 'Length Generator 7 & 8 are 10x more effective.',
         },
     },
+    pVolumes: {
+        row: 2,
+        col: 2,
+        11: {
+            desc: 'Volume Generators are disabled.',
+            goal: () => { return E(10).pow(300+30*FORMULA.v_chal_times(11)) },
+            reward: 'Volume Generators gain based on spent time played.',
+            cur: () => { return E(player.ticks+1).pow(0.55*(FORMULA.v_chal_times(11)**0.5)) },
+            curDesc: (x) => { return 'x'+notate(x) },
+        },
+        12: {
+            desc: 'Area Generators are disabled.',
+            goal: () => { return E(10).pow(300+30*FORMULA.v_chal_times(12)) },
+            reward: 'PA powers boost Area generator 1, and raise PA powers effect.',
+            cur: () => { return [player.PA_powers.add(1).pow(0.1*(FORMULA.v_chal_times(12)**0.5)), E((FORMULA.v_chal_times(12)+1)**3.25)] },
+            curDesc: (x) => { return 'x'+notate(x[0],0)+' to Area generator 1, ^'+notate(x[1],1)+' to PA powers effect' },
+        },
+        21: {
+            desc: 'Multiplier Powers are weaker.',
+            goal: () => { return E(10).pow(300+30*FORMULA.v_chal_times(21)) },
+            reward: 'Metas are stronger.',
+            cur: () => { return E(FORMULA.v_chal_times(21)+1).pow(0.5) },
+            curDesc: (x) => { return 'x'+notate(x,2) },
+        },
+        22: {
+            desc: 'Placeholder.',
+            goal: () => { return E(1/0) },
+            reward: 'Placeholder.',
+        },
+    },
 }
 
 const ACHIEVEMENTS = {
     unls: {
         row: 10,
-        col: 4,
+        col: 5,
         11: {
             title: 'You gotta start',
             desc: 'Buy Generator 1.',
@@ -648,7 +778,7 @@ const ACHIEVEMENTS = {
         },
         29: {
             title: "Why you need NO POWERS to pass?",
-            desc: 'Complete PA Challenge 3 without having Multipliers, Metas and Sacrifices. Reward: All Generators are less stronger based on Meta Powers.',
+            desc: 'Complete PA Challenge 3 without having Multipliers, Metas and Sacrifices. Reward: All Generators are stronger based on Meta Powers.',
             req: () => { return false },
         },
         30: {
@@ -721,51 +851,111 @@ const ACHIEVEMENTS = {
         },
         43: {
             title: 'Free 🅱etas',
-            desc: 'Gain 2 areaity metas. Reward: Gain areaity powers 1.5 times faster.',
+            desc: 'Gain 2 areaity metas. Reward: Grow areaity powers 1.5 times faster.',
             img: true,
             req: () => { return player.areaity.metas >= 2 },
         },
         44: {
-            title: 'Placeholder',
-            desc: 'Placeholder.',
+            title: 'Four Timepowers',
+            desc: 'Buy Volume generator 4.',
             img: true,
-            req: () => { return false },
+            req: () => { return player.PV_generators[3][1].gte(1) },
         },
         45: {
-            title: 'Placeholder',
-            desc: 'Placeholder.',
+            title: '1/2 of Tetr Up',
+            desc: 'Reach Multipler Tier 50.',
             img: true,
-            req: () => { return false },
+            req: () => { return player.multTiers.gte(50) },
         },
         46: {
-            title: 'Placeholder',
-            desc: 'Placeholder.',
+            title: 'Big Bigger Biggest',
+            desc: 'Get e2,500,000x sacrifice multipler. Reward: Sacrifice dosent reset Length generators.',
             img: true,
-            req: () => { return false },
+            req: () => { return player.sacrifice.gte('e2500000') },
         },
         47: {
-            title: 'Placeholder',
-            desc: 'Placeholder.',
+            title: 'Non-Infinity Hero',
+            desc: 'Transform PA without having PA powers. Reward: Meta dosent reset Sacrifice.',
             img: true,
             req: () => { return false },
         },
         48: {
-            title: 'Placeholder',
-            desc: 'Placeholder.',
+            title: 'Non-Flipped Infinity',
+            desc: 'Buy Area Generator 8.',
             img: true,
-            req: () => { return false },
+            req: () => { return player.PA_generators[7][1].gte(1) },
         },
         49: {
-            title: 'Placeholder',
-            desc: 'Placeholder.',
+            title: 'Area.exe has not exist',
+            desc: 'Gain 9.999e99 PA.',
             img: true,
-            req: () => { return false },
+            req: () => { return player.pAreas.points.gte('9.999e99') },
         },
         50: {
             title: 'Micrillion PL in zoom!',
             desc: 'Reach e3,000,003 PL. Reward: Length & Area Generators is 25% stronger.',
             img: true,
             req: () => { return player.money.gte('e3000003') },
+        },
+        51: {
+            title: 'Road of Reality',
+            desc: 'Reach 16,000,000 PV. Reward: Raise PA gain by 1.1',
+            img: true,
+            req: () => { return player.pVolumes.points.gte('16000000') },
+        },
+        52: {
+            title: 'Ten + Metas = Tetas',
+            desc: 'Get 10 areaity metas. Reward: Grow areaity powers 2 times faster.',
+            img: true,
+            req: () => { return player.areaity.metas >= 10 },
+        },
+        53: {
+            title: '1000 Multipliers like One Power',
+            desc: 'Get 1000 multiplier upgrades.',
+            img: true,
+            req: () => { return FORMULA.pv_powers_eff.mults_gain().gte(1000) },
+        },
+        54: {
+            title: 'Infinity Tier',
+            desc: 'Reach 1st Area generator Tier 2.',
+            img: true,
+            req: () => { return player.PA_generators[0][2].gte(2) },
+        },
+        55: {
+            title: 'New Era of Tetration',
+            desc: 'Tetr Multiplier up. Reward: Multiplier are 10% stronger.',
+            img: true,
+            req: () => { return player.multTetrs.gte(2) },
+        },
+        56: {
+            title: 'Not Easy Challenge',
+            desc: 'Complete Volume challenge.',
+            img: true,
+            req: () => { return Object.keys(player.volume_chal.completed).length > 0 },
+        },
+        57: {
+            title: 'I wanted to get infinity',
+            desc: 'Get 1.79e308 Planck Areas.',
+            img: true,
+            req: () => { return player.pAreas.points.gte('1.79e308') },
+        },
+        58: {
+            title: 'Placeholder',
+            desc: 'Placeholder.',
+            img: true,
+            req: () => { return false },
+        },
+        59: {
+            title: 'Placeholder',
+            desc: 'Placeholder.',
+            img: true,
+            req: () => { return false },
+        },
+        60: {
+            title: 'NANILLION!',
+            desc: 'Reach e3e9 Planck Lengths.',
+            img: true,
+            req: () => { return player.money.gte('e3e9') },
         },
     },
     secrets: {
@@ -843,6 +1033,25 @@ function PAChal(id) {
     }
 }
 
+function PVChal(id) {
+    if (player.volume_chal.enabled == id) {
+        if (player.volume_chal.active == 0) {
+            PAReset()
+            player.volume_chal.active = id
+        } else if (player.volume_chal.active == id) {
+            if (player.pAreas.points.gte(CHALLENGE.pVolumes[id].goal())) {
+                if (!player.volume_chal.completed[id]) player.volume_chal.completed[id] = 0
+                if (player.volume_chal.completed[id] < 5) player.volume_chal.completed[id]++
+            }
+            player.studies.spent = 0
+            player.studies.upgs = []
+            player.volume_chal.enabled = 0
+            PAReset()
+            player.volume_chal.active = 0
+        }
+    }
+}
+
 function buyUPG(upg, id) {
     let cost = UPGRADE[upg][id].cost()
     if (upg == 'post_gens') {
@@ -887,6 +1096,14 @@ function tierGenerator(x) {
     }
 }
 
+function tetrGenerator(x) {
+    if (player.generators[x][2].gte(100)) {
+        player.generators[x][1] = E(0)
+        player.generators[x][2] = E(1)
+        player.gen_tetr[x] = player.gen_tetr[x].add(1)
+    }
+}
+
 function tierMult() {
     if (player.mults.gte(100)) {
         player.mults = E(0)
@@ -898,6 +1115,14 @@ function tierMeta() {
     if (player.metas.gte(100)) {
         player.metas = E(0)
         player.metaTiers = player.metaTiers.add(1)
+    }
+}
+
+function tetrMult() {
+    if (player.multTiers.gte(100)) {
+        player.mults = E(0)
+        player.multTiers = E(1)
+        player.multTetrs = player.multTetrs.add(1)
     }
 }
 
@@ -914,12 +1139,16 @@ function buyMeta() {
         if (player.pAreas.upgs.includes(13)) {if (player.metas.lt(FORMULA.meta_bulk())) player.metas = FORMULA.meta_bulk()}
         else player.metas = player.metas.add(1)
         player.money = E(player.achievements.includes(25)?200:10)
+        if (player.achievements.includes(41)) player.money = E('2e50')
         player.generators = []
+        player.gen_tetr = []
         for (let i = 0; i < 8; i++) player.generators.push([E(0),E(0),E(1)])
+        for (let i = 0; i < 8; i++) player.gen_tetr.push(E(1))
         player.mults = E(0)
         player.multTiers = E(1)
+        player.multTetrs = E(1)
         unlockFeature('sacrifice')
-        player.sacrifice = E(1)
+        if (!player.achievements.includes(47)) player.sacrifice = E(1)
     }
 }
 
@@ -972,7 +1201,7 @@ function sacrificeGen() {
     if ((player.metas.gte(1) || player.pAreas.upgs.includes(43)) && FORMULA.gen8_have().gte(1)) {
         if (FORMULA.sacrifice().gte('e60000')) unlockAchievement(35)
         player.sacrifice = player.sacrifice.mul(FORMULA.sacrifice())
-        for (let i = 0; i < 7; i++) player.generators[i][0] = E(0)
+        if (!player.achievements.includes(46)) for (let i = 0; i < 7; i++) player.generators[i][0] = E(0)
     }
 }
 
@@ -990,13 +1219,15 @@ function transformPL() {
 function transformPA() {
     if (FORMULA.planckVolumes_gain().gte(1)) if (confirm('Transform PA will reset everything except achievements. You will also gain an Volume Lengths and unlock various upgrades.')) {
         unlockFeature('planckVolumes')
-        if (player.respec) {
+        if (player.PA_powers.lte(0)) unlockAchievement(47)
+        player.pVolumes.points = player.pVolumes.points.add(FORMULA.planckVolumes_gain())
+        player.pVolumes.times = player.pVolumes.times.add(1)
+        if (player.respec && player.volume_chal.active == 0) {
             player.respec = false
             player.studies.spent = 0
             player.studies.upgs = []
+            player.volume_chal.enabled = 0
         }
-        player.pVolumes.points = player.pVolumes.points.add(FORMULA.planckVolumes_gain())
-        player.pVolumes.times = player.pVolumes.times.add(1)
         PAReset()
     }
 }
@@ -1005,17 +1236,20 @@ function PLReset() {
     if (player.achievements.includes(41)) player.money = E('2e50')
     else player.money = E(player.achievements.includes(25)?200:10)
     player.generators = []
+    player.gen_tetr = []
     for (let i = 0; i < 8; i++) player.generators.push([E(0),E(0),E(1)])
+    for (let i = 0; i < 8; i++) player.gen_tetr.push(E(1))
     player.mults = E(0)
     player.multTiers = E(1)
+    player.multTetrs = E(1)
     player.metas = E(0)
-    player.areaity.metas = 0
+    if (!player.studies.upgs.includes(41)) player.areaity.metas = 0
     player.metaTiers = E(1)
     player.sacrifice = E(1)
 }
 
 function PAReset() {
-    player.PA_gen_unls = 0
+    if (!player.pVolumes.times.gte(MILESTONES[42].req)) player.PA_gen_unls = 0
     player.PA_generators = []
     for (let i = 0; i < 8; i++) player.PA_generators.push([E(0),E(0),E(1)])
     player.PA_powers = E(0)
@@ -1023,13 +1257,14 @@ function PAReset() {
     player.pAreas.times = E(0)
     if (!player.pVolumes.times.gte(MILESTONES[22].req)) player.pAreas.upgs = []
     if (player.pVolumes.times.gte(MILESTONES[12].req)) player.pAreas.times = E(5)
+    if (player.pVolumes.times.gte(MILESTONES[31].req)) player.pAreas.points = E(1e10)
     player.PA_mult = E(0)
-    player.PA_chal = {
-        unl: [],
-        active: 0,
-        completed: [],
+    if (!player.pVolumes.times.gte(MILESTONES[32].req)) {
+        player.PA_chal.unl = []
+        player.PA_chal.completed = []
     }
-    player.PG_upgs = []
+    player.PA_chal.active = 0
+    if (!player.pVolumes.times.gte(MILESTONES[51].req)) player.PG_upgs = []
     if (player.pVolumes.times.lt(MILESTONES[12].req)) {
         player.generators_autobuyer = []
         for (let i = 0; i < 8; i++) player.generators_autobuyer.push([false,false])

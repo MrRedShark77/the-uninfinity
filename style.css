@@ -65,10 +65,18 @@ h1, h2 {
     font-size: 11px
 }
 
+.tetr {
+	color: #33dd1c;
+    background: #0e3d07;
+	border-color: #33dd1c;
+	animation: background_tetr 6s ease infinite;
+}
+
 .volume {
 	color: #b341e0;
     background: black;
-    border-color: #b341e0;
+	border-color: #b341e0;
+	box-shadow: inset 0 0 20px #b341e0;
 }
 
 .study {
@@ -80,6 +88,18 @@ h1, h2 {
 
 .study.normal {
 	background-color: #b341e0;
+}
+.study.path1 {
+	background-color: #ff5d5d;
+}
+.study.path2 {
+	background-color: #96df74;
+}
+.study.path3 {
+	background-color: #685bdf;
+}
+.study.pv_chal {
+	background-color: #c37cdf;
 }
 
 .achi_unl {
@@ -157,6 +177,19 @@ h1, h2 {
     border-radius: 10px;
 }
 
+.pv_challenge {
+    width: 400px;
+    height: 210px;
+	border: solid 3px #b341e0;
+	color: #b341e0;
+	text-shadow: 0px 0px 7px #b341e0;
+    border-radius: 10px;
+    font-size: 80%;
+    padding: 3px;
+    margin: 3px;
+    border-radius: 10px;
+}
+
 .canvas {
 	top: 0;
 	left: 0;
@@ -226,4 +259,16 @@ h1, h2 {
 	filter: progid: DXImageTransform.Microsoft.Alpha(Opacity=100);
 	opacity: 1;
 	white-space: pre-wrap;
+}
+
+@keyframes background_tetr {
+    0% {
+		background: #0e3d07;
+	}
+	50% {
+        background: #1b740d;
+	}
+	100% {
+		background: #0e3d07;
+	}
 }
